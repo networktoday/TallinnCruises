@@ -1,0 +1,20 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "z1ZC4JBHPfTvVHvWQw2Er"
+uri = "file://artifacts/tallinn-shore-tours/public/tour-medieval.png"
+type = "image"
+title = "Tallinn medieval towers golden hour"
+
+[[generated]]
+id = "9L6b9QUPNpU9OpsvEfRdR"
+uri = "file://artifacts/tallinn-shore-tours/public/tour-explorer.png"
+type = "image"
+title = "Tallinn panoramic coastline palace"
+
+[[generated]]
+id = "2usTfZcWgJM2JZhnc0ieF"
+uri = "file://artifacts/tallinn-shore-tours/public/tour-custom.png"
+type = "image"
+title = "Private guide Tallinn intimate tour"

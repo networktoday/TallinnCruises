@@ -585,26 +585,27 @@
     }
 
     .tour-card-header {
-      height: 180px;
+      height: 210px;
       display: flex; align-items: flex-end; padding: 20px;
       position: relative;
       overflow: hidden;
     }
 
     .tour-card-header.h-medieval {
-      background: linear-gradient(160deg, #1a4060 0%, #0B2D3E 100%);
+      background: linear-gradient(to bottom, rgba(11,45,62,0.08) 0%, rgba(11,45,62,0.72) 100%),
+                  url('/tour-medieval.png') center/cover no-repeat;
     }
     .tour-card-header.h-explorer {
-      background: linear-gradient(160deg, #1C5068 0%, #0B3D52 100%);
+      background: linear-gradient(to bottom, rgba(11,61,82,0.08) 0%, rgba(11,61,82,0.72) 100%),
+                  url('/tour-explorer.png') center/cover no-repeat;
     }
     .tour-card-header.h-custom {
-      background: linear-gradient(160deg, #2D1B44 0%, #1a1128 100%);
+      background: linear-gradient(to bottom, rgba(26,17,40,0.08) 0%, rgba(26,17,40,0.72) 100%),
+                  url('/tour-custom.png') center/cover no-repeat;
     }
 
     .tour-card-header-pattern {
-      position: absolute; inset: 0; opacity: 0.15;
-      background-image: radial-gradient(circle at 20% 80%, rgba(212,148,30,0.6) 0%, transparent 50%),
-                        radial-gradient(circle at 80% 20%, rgba(255,255,255,0.2) 0%, transparent 50%);
+      position: absolute; inset: 0; opacity: 0;
     }
 
     .tour-duration {
