@@ -789,59 +789,57 @@
     /* ═══════════════════════════════════════
        FAQ
     ═══════════════════════════════════════ */
-    #faq { background: var(--sand); }
+    #faq { background: var(--white); }
 
-    .faq-header { text-align: center; margin-bottom: 48px; }
+    .faq-header { text-align: center; margin-bottom: 56px; }
     .faq-header .label { color: var(--gold); display: block; margin-bottom: 12px; }
     .faq-header h2 {
       font-family: var(--font-display);
-      font-size: clamp(34px, 4vw, 48px);
+      font-size: clamp(30px, 4vw, 44px);
       font-weight: 700; color: var(--navy);
     }
 
-    .faq-list { max-width: 720px; margin: 0 auto; }
+    .faq-list { max-width: 780px; margin: 0 auto; }
 
     .faq-item {
-      background: var(--white);
-      border-radius: var(--radius);
-      margin-bottom: 8px;
-      border: 1px solid var(--border);
-      overflow: hidden;
+      border-top: 1px solid rgba(11,45,62,0.12);
     }
+    .faq-item:last-child { border-bottom: 1px solid rgba(11,45,62,0.12); }
 
     .faq-question {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 20px 24px; cursor: pointer;
-      font-size: 16px; font-weight: 600; color: var(--navy);
-      font-family: var(--font-display);
-      transition: background 0.2s;
-      gap: 16px;
+      width: 100%; text-align: left;
+      padding: 24px 0; cursor: pointer;
+      font-size: 17px; font-weight: 600; color: var(--navy);
+      font-family: var(--font-body);
+      background: none; border: none;
+      transition: color 0.2s ease;
+      gap: 24px;
     }
 
-    .faq-question:hover { background: var(--cream); }
+    .faq-question:hover { color: var(--gold); }
+    .faq-item.open .faq-question { color: var(--gold); }
 
     .faq-icon {
-      width: 28px; height: 28px; border-radius: 50%;
-      background: var(--gold-pale); flex-shrink: 0;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 18px; color: var(--gold);
-      transition: transform 0.3s;
-      font-weight: 400;
+      width: 22px; height: 22px; flex-shrink: 0;
+      color: var(--gold);
+      transition: transform 0.35s ease;
     }
 
-    .faq-item.open .faq-icon { transform: rotate(45deg); }
+    .faq-item.open .faq-icon { transform: rotate(180deg); }
 
     .faq-answer {
       max-height: 0; overflow: hidden;
-      transition: max-height 0.35s ease, padding 0.35s ease;
-      padding: 0 24px;
-      font-size: 15px; color: var(--text-mid);
-      font-weight: 300; line-height: 1.8;
+      transition: max-height 0.4s ease, padding 0.3s ease;
+      padding: 0;
+      font-size: 16px; color: var(--text-mid);
+      font-family: var(--font-body);
+      font-weight: 400; line-height: 1.75;
     }
 
     .faq-item.open .faq-answer {
-      max-height: 300px;
-      padding: 0 24px 20px;
+      max-height: 400px;
+      padding: 0 0 26px;
     }
 
     /* ═══════════════════════════════════════
@@ -1470,7 +1468,7 @@
         <div class="faq-item">
           <button class="faq-question">
             What happens if my ship can't dock in Tallinn?
-            <span class="faq-icon">+</span>
+            <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
           </button>
           <div class="faq-answer">
             <p>If your ship is unable to dock due to weather, port congestion, or any other reason beyond your control, you'll receive a 100% full refund with no questions asked. We take all the risk — you keep your money.</p>
@@ -1480,7 +1478,7 @@
         <div class="faq-item">
           <button class="faq-question">
             How do I know you'll get me back to the ship on time?
-            <span class="faq-icon">+</span>
+            <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
           </button>
           <div class="faq-answer">
             <p>Your guide monitors your ship's departure schedule throughout the entire tour. We build buffer time into every itinerary and always return you to the terminal at least 45 minutes before all-aboard time. In 7 years of operation, we have never caused a guest to miss their ship.</p>
@@ -1490,7 +1488,7 @@
         <div class="faq-item">
           <button class="faq-question">
             Is this really just my group? No strangers?
-            <span class="faq-icon">+</span>
+            <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
           </button>
           <div class="faq-answer">
             <p>Absolutely. Every single tour we run is exclusively for your party. We never combine groups. Whether you're traveling as a couple or a group of 15, the guide, the vehicle, and the day are all yours.</p>
@@ -1500,7 +1498,7 @@
         <div class="faq-item">
           <button class="faq-question">
             Do all your guides speak English?
-            <span class="faq-icon">+</span>
+            <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
           </button>
           <div class="faq-answer">
             <p>Yes, all our guides are fluent in English and specifically trained to work with American and international cruise guests. Several are also licensed tour guides with advanced degrees in Estonian history and culture.</p>
@@ -1510,7 +1508,7 @@
         <div class="faq-item">
           <button class="faq-question">
             How far is the cruise terminal from Tallinn Old Town?
-            <span class="faq-icon">+</span>
+            <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
           </button>
           <div class="faq-answer">
             <p>The Old City Harbour cruise terminal is approximately 1.2 km from the entrance to Old Town — about a 15-minute walk. We pick you up directly at the terminal and provide transportation throughout the tour.</p>
@@ -1520,7 +1518,7 @@
         <div class="faq-item">
           <button class="faq-question">
             What's the maximum group size?
-            <span class="faq-icon">+</span>
+            <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
           </button>
           <div class="faq-answer">
             <p>Our standard tours accommodate groups up to 8 people in a comfortable minivan. For larger groups (9–15), we arrange a larger vehicle with no extra charge. If you're traveling with more than 15 people, contact us for a custom group quote.</p>
@@ -1530,7 +1528,7 @@
         <div class="faq-item">
           <button class="faq-question">
             When should I book — how far in advance?
-            <span class="faq-icon">+</span>
+            <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
           </button>
           <div class="faq-answer">
             <p>We recommend booking at least 4–6 weeks before your cruise date, especially during peak season (June–August). Popular dates fill up quickly. Last-minute bookings may be available, but availability is not guaranteed.</p>
