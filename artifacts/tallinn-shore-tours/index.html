@@ -430,8 +430,8 @@
       min-height: 140px; background-size: cover; background-position: center;
       position: relative;
     }
-    .tour-modal-card-img .tour-tag {
-      position: absolute; top: 10px; left: 10px;
+    .tour-modal-card-body > .tour-tag {
+      align-self: flex-start;
     }
 
     .tour-modal-card-body { padding: 16px; display: flex; flex-direction: column; justify-content: center; }
@@ -2162,9 +2162,7 @@
       <div class="tour-modal-grid">
 
         <div class="tour-modal-card" data-tour-value="Classic Essential" data-tour-label="Old Town Walking Tour — Classic Essential (3h)">
-          <div class="tour-modal-card-img" style="background-image: linear-gradient(to bottom, rgba(0,0,0,0) 50%, rgba(0,0,0,0.35) 100%), url('/tour-medieval.png');">
-            <span class="tour-tag">Classic Essential</span>
-          </div>
+          <div class="tour-modal-card-img" style="background-image: linear-gradient(to bottom, rgba(0,0,0,0) 50%, rgba(0,0,0,0.35) 100%), url('/tour-medieval.png');"></div>
           <div class="tour-modal-card-body">
             <div class="tour-modal-card-title">Tallinn Old Town Private Walking Tour</div>
             <p class="tour-modal-card-desc">The essential Tallinn on foot — cobblestones, medieval walls, and centuries of history with your own expert local guide.</p>
@@ -2172,13 +2170,12 @@
               <div class="tour-modal-card-price">$89 <span>per person</span></div>
               <div class="tour-modal-card-duration">⏱ 3 hours</div>
             </div>
+            <span class="tour-tag" style="margin-top:10px;">Classic Essential</span>
           </div>
         </div>
 
         <div class="tour-modal-card" data-tour-value="Signature Tour" data-tour-label="Best of Tallinn Shore Excursion — Signature Tour (6h)">
-          <div class="tour-modal-card-img" style="background-image: linear-gradient(to bottom, rgba(0,0,0,0) 50%, rgba(0,0,0,0.35) 100%), url('/tour-explorer.png');">
-            <span class="tour-tag tag-signature">Signature Tour</span>
-          </div>
+          <div class="tour-modal-card-img" style="background-image: linear-gradient(to bottom, rgba(0,0,0,0) 50%, rgba(0,0,0,0.35) 100%), url('/tour-explorer.png');"></div>
           <div class="tour-modal-card-body">
             <div class="tour-modal-card-title">Best of Tallinn Private Shore Excursion</div>
             <p class="tour-modal-card-desc">Old Town, Kadriorg Palace, Baltic coast, and a local restaurant lunch — the most popular full-day Tallinn experience.</p>
@@ -2186,13 +2183,12 @@
               <div class="tour-modal-card-price">$149 <span>per person</span></div>
               <div class="tour-modal-card-duration">⏱ 6 hours</div>
             </div>
+            <span class="tour-tag tag-signature" style="margin-top:10px;">Signature Tour</span>
           </div>
         </div>
 
         <div class="tour-modal-card" data-tour-value="Most Complete" data-tour-label="Old Town, Kadriorg & Pirita — Most Complete (8h)">
-          <div class="tour-modal-card-img" style="background-image: linear-gradient(to bottom, rgba(0,0,0,0) 50%, rgba(0,0,0,0.35) 100%), url('/tour-custom.png');">
-            <span class="tour-tag tag-complete">Most Complete</span>
-          </div>
+          <div class="tour-modal-card-img" style="background-image: linear-gradient(to bottom, rgba(0,0,0,0) 50%, rgba(0,0,0,0.35) 100%), url('/tour-custom.png');"></div>
           <div class="tour-modal-card-body">
             <div class="tour-modal-card-title">Tallinn Old Town, Kadriorg & Pirita Tour</div>
             <p class="tour-modal-card-desc">Every highlight, no rushing. A full day covering medieval Old Town, Baroque gardens, and the Baltic coastline.</p>
@@ -2200,13 +2196,12 @@
               <div class="tour-modal-card-price">$179 <span>per person</span></div>
               <div class="tour-modal-card-duration">⏱ 8 hours</div>
             </div>
+            <span class="tour-tag tag-complete" style="margin-top:10px;">Most Complete</span>
           </div>
         </div>
 
         <div class="tour-modal-card" data-tour-value="Most Original" data-tour-label="Hidden Stories & Local Life — Most Original (4h)">
-          <div class="tour-modal-card-img" style="background-image: linear-gradient(to bottom, rgba(0,0,0,0) 50%, rgba(0,0,0,0.35) 100%), url('/tour-stories.png');">
-            <span class="tour-tag tag-diff">Most Original</span>
-          </div>
+          <div class="tour-modal-card-img" style="background-image: linear-gradient(to bottom, rgba(0,0,0,0) 50%, rgba(0,0,0,0.35) 100%), url('/tour-stories.png');"></div>
           <div class="tour-modal-card-body">
             <div class="tour-modal-card-title">Tallinn Hidden Stories & Local Life Tour</div>
             <p class="tour-modal-card-desc">Skip the postcard version. Explore creative neighborhoods, street art, local cafés, and stories no bus tour tells.</p>
@@ -2214,6 +2209,7 @@
               <div class="tour-modal-card-price">$109 <span>per person</span></div>
               <div class="tour-modal-card-duration">⏱ 4 hours</div>
             </div>
+            <span class="tour-tag tag-diff" style="margin-top:10px;">Most Original</span>
           </div>
         </div>
 
