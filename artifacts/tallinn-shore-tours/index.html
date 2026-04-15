@@ -841,6 +841,50 @@
     }
 
     /* ═══════════════════════════════════════
+       WHY PRIVATE TOURS — BENEFITS
+    ═══════════════════════════════════════ */
+    #benefits { background: var(--navy); color: var(--white); }
+
+    .benefits-header { text-align: center; margin-bottom: 52px; }
+    .benefits-header .label { color: var(--gold); display: block; margin-bottom: 12px; }
+    .benefits-header h2 {
+      font-family: var(--font-display);
+      font-size: clamp(30px, 3.5vw, 44px);
+      font-weight: 700; color: var(--white);
+    }
+
+    .benefits-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 28px;
+    }
+
+    .benefit-card {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: var(--radius);
+      padding: 28px 24px;
+      transition: transform 0.25s, background 0.25s;
+    }
+    .benefit-card:hover {
+      background: rgba(255,255,255,0.1);
+      transform: translateY(-3px);
+    }
+
+    .benefit-icon {
+      font-size: 28px; margin-bottom: 14px;
+    }
+
+    .benefit-title {
+      font-family: var(--font-display); font-size: 18px;
+      font-weight: 600; color: var(--white); margin-bottom: 8px;
+    }
+
+    .benefit-desc {
+      font-size: 14px; color: rgba(255,255,255,0.7);
+      line-height: 1.65; font-weight: 300;
+    }
+
+    /* ═══════════════════════════════════════
        TESTIMONIALS
     ═══════════════════════════════════════ */
     #testimonials { background: var(--cream); }
@@ -1257,7 +1301,12 @@
       .tours-grid { grid-template-columns: 1fr; max-width: 480px; margin: 0 auto; }
       .steps-grid { grid-template-columns: repeat(2, 1fr); }
       .steps-grid::after { display: none; }
+      .benefits-grid { grid-template-columns: repeat(2, 1fr); }
       .testi-grid { grid-template-columns: 1fr; max-width: 480px; margin: 0 auto; }
+    }
+
+    @media (max-width: 600px) {
+      .benefits-grid { grid-template-columns: 1fr; }
       .booking-inner { grid-template-columns: 1fr; gap: 40px; }
       .booking-form { grid-template-columns: 1fr; }
       .booking-form .full { grid-column: 1; }
@@ -1265,9 +1314,6 @@
 
       .nav-links, .nav-cta { display: none; }
       .hamburger { display: flex; }
-    }
-
-    @media (max-width: 600px) {
       .section { padding: 64px 0; }
       .trust-strip-grid { grid-template-columns: 1fr; }
       .hero-trust { flex-wrap: wrap; gap: 16px; }
@@ -1319,7 +1365,7 @@
             <em>Your Rules.</em>
           </h1>
           <p class="hero-sub">
-            Skip the crowded bus tours. We pick you up at the gangway, show you the real Tallinn, and get you back before your ship sails — guaranteed.
+            Private shore excursions for couples and small groups, led by a Tallinn specialist with 22+ years of experience. Cruise-port pickup, guaranteed on-time return, your pace.
           </p>
           <div class="hero-ctas">
             <a href="#booking" class="btn btn-primary">Book Your Private Tour</a>
@@ -1342,7 +1388,7 @@
             </div>
             <div class="trust-divider"></div>
             <div class="trust-item">
-              <span class="trust-num">20+</span>
+              <span class="trust-num">22+</span>
               <span class="trust-label">Years of experience</span>
             </div>
           </div>
@@ -1360,7 +1406,7 @@
             <div class="seal-container">
               <div class="seal">
                 <div class="seal-icon">🏆</div>
-                <div class="seal-text">20+ Years<br>Experience</div>
+                <div class="seal-text">22+ Years<br>Experience</div>
                 <div class="seal-sub">since 2004</div>
               </div>
             </div>
@@ -1413,24 +1459,24 @@
     <div class="container">
       <div class="trust-strip-grid">
         <div class="trust-card reveal">
-          <div class="trust-card-icon">⚓</div>
-          <div class="trust-card-title">Ship Return Guaranteed</div>
-          <p class="trust-card-desc">We monitor your ship's schedule in real time. If anything delays your return, we cover the tender.</p>
+          <div class="trust-card-icon">🚢</div>
+          <div class="trust-card-title">Designed for Cruise Passengers</div>
+          <p class="trust-card-desc">We specialize exclusively in cruise ship guests arriving at Tallinn port. Every detail — timing, logistics, pace — is built around your ship schedule.</p>
         </div>
         <div class="trust-card reveal reveal-delay-1">
-          <div class="trust-card-icon">👥</div>
-          <div class="trust-card-title">Your Group Only</div>
-          <p class="trust-card-desc">Never share your experience with strangers. Every tour is exclusively for your party.</p>
+          <div class="trust-card-icon">👫</div>
+          <div class="trust-card-title">Private by Design</div>
+          <p class="trust-card-desc">Your group only, always. No strangers, no waiting, no compromise. Just you and your personal Tallinn guide.</p>
         </div>
         <div class="trust-card reveal reveal-delay-2">
-          <div class="trust-card-icon">🗺️</div>
-          <div class="trust-card-title">Expert Local Guides</div>
-          <p class="trust-card-desc">Fluent English-speaking guides who were born and raised in Tallinn. Not scripts — real stories.</p>
+          <div class="trust-card-icon">🏆</div>
+          <div class="trust-card-title">22+ Years of Local Expertise</div>
+          <p class="trust-card-desc">Not a marketplace, not a generalist operator. A Tallinn specialist with over two decades of guiding experience — since 2004.</p>
         </div>
         <div class="trust-card reveal reveal-delay-3">
-          <div class="trust-card-icon">✓</div>
-          <div class="trust-card-title">Free Cancellation</div>
-          <p class="trust-card-desc">Can't dock? Full refund, no questions asked. We take all the weather risk so you don't have to.</p>
+          <div class="trust-card-icon">🏛️</div>
+          <div class="trust-card-title">History, Life & Logistics in One</div>
+          <p class="trust-card-desc">Medieval wonders, real local culture, and seamless port-to-port logistics — all woven into a single, effortless day.</p>
         </div>
       </div>
     </div>
@@ -1641,6 +1687,55 @@
     </div>
   </section>
 
+  <!-- ═══ WHY PRIVATE TOURS — BENEFITS ═══ -->
+  <section id="benefits" class="section">
+    <div class="container">
+      <div class="benefits-header reveal">
+        <span class="label">The Private Difference</span>
+        <h2>Why travelers choose private Tallinn tours</h2>
+      </div>
+      <div class="benefits-grid">
+
+        <div class="benefit-card reveal">
+          <div class="benefit-icon">🚶</div>
+          <div class="benefit-title">Less Walking Stress</div>
+          <p class="benefit-desc">No forced marches behind a flag. We match the walking pace to your comfort, with rest stops whenever you need them.</p>
+        </div>
+
+        <div class="benefit-card reveal reveal-delay-1">
+          <div class="benefit-icon">⏳</div>
+          <div class="benefit-title">Flexible Pace</div>
+          <p class="benefit-desc">Want to linger at a viewpoint or skip a museum? It's your day. We adjust the itinerary in real time around what you enjoy.</p>
+        </div>
+
+        <div class="benefit-card reveal reveal-delay-2">
+          <div class="benefit-icon">📸</div>
+          <div class="benefit-title">Better Photos & Viewpoints</div>
+          <p class="benefit-desc">Your guide knows hidden angles and crowd-free moments. No fighting 50 strangers for the same shot.</p>
+        </div>
+
+        <div class="benefit-card reveal">
+          <div class="benefit-icon">💬</div>
+          <div class="benefit-title">Space for Questions</div>
+          <p class="benefit-desc">Curious about Estonian history, daily life, or the Soviet era? Ask anything — your guide has time just for you.</p>
+        </div>
+
+        <div class="benefit-card reveal reveal-delay-1">
+          <div class="benefit-icon">⏱️</div>
+          <div class="benefit-title">No Waiting for Groups</div>
+          <p class="benefit-desc">No headcounts, no bathroom queues for 40 people, no waiting for stragglers. Your group moves when you're ready.</p>
+        </div>
+
+        <div class="benefit-card reveal reveal-delay-2">
+          <div class="benefit-icon">🇪🇪</div>
+          <div class="benefit-title">Deeper Insight into Estonia</div>
+          <p class="benefit-desc">Go beyond tourist highlights. Learn about modern Estonian life, tech culture, food traditions, and what makes this country unique.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
   <!-- ═══ TESTIMONIALS ═══ -->
   <section id="testimonials" class="section">
     <div class="container">
@@ -1721,7 +1816,7 @@
             <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
           </button>
           <div class="faq-answer">
-            <p>Your guide monitors your ship's departure schedule throughout the entire tour. We build buffer time into every itinerary and always return you to the terminal at least 45 minutes before all-aboard time. In 7 years of operation, we have never caused a guest to miss their ship.</p>
+            <p>Your guide monitors your ship's departure schedule throughout the entire tour. We build buffer time into every itinerary and always return you to the terminal at least 45 minutes before all-aboard time. In over 22 years of operation, we have never caused a guest to miss their ship.</p>
           </div>
         </div>
 
@@ -1737,31 +1832,61 @@
 
         <div class="faq-item">
           <button class="faq-question">
-            Do all your guides speak English?
+            Are your tours suitable for seniors or those with limited mobility?
             <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
           </button>
           <div class="faq-answer">
-            <p>Yes, all our guides are fluent in English and specifically trained to work with American and international cruise guests. Several are also licensed tour guides with advanced degrees in Estonian history and culture.</p>
+            <p>Absolutely. Many of our guests are 60–80+ years old. We adapt the pace, choose flat routes when needed, and include vehicle transfers so you never walk more than you're comfortable with. Just let us know your needs when booking.</p>
           </div>
         </div>
 
         <div class="faq-item">
           <button class="faq-question">
-            How far is the cruise terminal from Tallinn Old Town?
+            How much walking is involved?
             <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
           </button>
           <div class="faq-answer">
-            <p>The Old City Harbour cruise terminal is approximately 1.2 km from the entrance to Old Town — about a 15-minute walk. We pick you up directly at the terminal and provide transportation throughout the tour.</p>
+            <p>It depends on the tour. Our Classic walking tour involves about 3–4 km at an easy pace with frequent stops. Tours with vehicle transfers (Signature, Most Complete) have even less walking since we drive between areas. We always adapt to your comfort level.</p>
           </div>
         </div>
 
         <div class="faq-item">
           <button class="faq-question">
-            What's the maximum group size?
+            What happens if it rains?
             <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
           </button>
           <div class="faq-answer">
-            <p>Our standard tours accommodate groups up to 8 people in a comfortable minivan. For larger groups (9–15), we arrange a larger vehicle with no extra charge. If you're traveling with more than 15 people, contact us for a custom group quote.</p>
+            <p>Tours run rain or shine — Tallinn is beautiful in all weather. If it rains, we shift to more indoor time (cafés, churches, covered passages) and use vehicle transfers. We never cancel due to rain.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">
+            Can the itinerary be adjusted during the tour?
+            <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+          <div class="faq-answer">
+            <p>Yes, that's one of the main advantages of a private tour. Want to spend more time at a viewpoint? Skip a museum? Stop for a coffee? Your guide adjusts the plan in real time based on your interests.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">
+            Are the tours child-friendly?
+            <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+          <div class="faq-answer">
+            <p>Yes. We regularly host families with children of all ages. Your guide will include age-appropriate stories, fun stops, and flexible breaks. Kids love the medieval towers and the legends of Old Town.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">
+            How do I pay — cash or online?
+            <svg class="faq-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+          <div class="faq-answer">
+            <p>We accept online payment at the time of booking — no need to carry cash. You can also pay on the day via credit card or cash (EUR). No credit card is required to hold your booking initially.</p>
           </div>
         </div>
 
@@ -1807,7 +1932,7 @@
             </div>
             <div class="booking-promise">
               <div class="booking-promise-icon">✓</div>
-              20+ years of experience in Tallinn tours
+              22+ years of experience in Tallinn tours
             </div>
           </div>
         </div>
