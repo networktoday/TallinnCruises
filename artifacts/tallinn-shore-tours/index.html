@@ -1129,8 +1129,8 @@
             Skip the crowded bus tours. We pick you up at the gangway, show you the real Tallinn, and get you back before your ship sails — guaranteed.
           </p>
           <div class="hero-ctas">
-            <a href="#tours" class="btn btn-primary">Explore Our Tours ↓</a>
-            <a href="#booking" class="btn btn-outline">Book a Spot Now</a>
+            <a href="#booking" class="btn btn-primary">Book Your Private Tour</a>
+            <a href="#tours" class="btn btn-outline">See All Tours</a>
           </div>
           <div class="hero-trust">
             <div class="trust-item">
@@ -1582,7 +1582,6 @@
             id="booking-form"
             action="https://formspree.io/f/YOUR_FORMSPREE_ID"
             method="POST"
-            novalidate
           >
             <div class="booking-form">
 
@@ -1755,6 +1754,11 @@
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
+
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+      }
 
       const btn = form.querySelector('button[type="submit"]');
       btn.textContent = 'Sending...';
