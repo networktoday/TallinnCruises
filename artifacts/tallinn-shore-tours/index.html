@@ -655,9 +655,11 @@
     .tours-header h2 em { font-style: italic; color: var(--gold); }
 
     .tours-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
+      display: flex;
+      flex-direction: column;
       gap: 24px;
+      max-width: 880px;
+      margin: 0 auto;
     }
 
     .tour-card {
@@ -666,10 +668,12 @@
       overflow: hidden;
       border: 1px solid var(--border);
       transition: transform 0.3s ease, box-shadow 0.3s ease;
+      display: grid;
+      grid-template-columns: 320px 1fr;
     }
 
     .tour-card:hover {
-      transform: translateY(-6px);
+      transform: translateY(-4px);
       box-shadow: var(--shadow-lg);
     }
 
@@ -686,7 +690,7 @@
     }
 
     .tour-card-header {
-      height: 210px;
+      min-height: 210px;
       display: flex; align-items: flex-end; padding: 20px;
       position: relative;
       overflow: hidden;
@@ -1298,7 +1302,8 @@
 
       .trust-strip-grid { grid-template-columns: repeat(2, 1fr); gap: 24px; }
       .why-grid { grid-template-columns: 1fr; gap: 40px; }
-      .tours-grid { grid-template-columns: 1fr; max-width: 480px; margin: 0 auto; }
+      .tour-card { grid-template-columns: 1fr; }
+      .tour-card-header { min-height: 180px; }
       .steps-grid { grid-template-columns: repeat(2, 1fr); }
       .steps-grid::after { display: none; }
       .benefits-grid { grid-template-columns: repeat(2, 1fr); }
