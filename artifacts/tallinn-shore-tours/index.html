@@ -373,6 +373,107 @@
       font-family: var(--font-mono);
     }
 
+    /* Tour Picker Modal */
+    .tour-picker-trigger {
+      width: 100%; padding: 10px 14px;
+      background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 8px; color: rgba(255,255,255,0.5);
+      font-size: 14px; font-family: var(--font-body); cursor: pointer;
+      text-align: left; transition: border-color 0.2s;
+    }
+    .tour-picker-trigger.has-value { color: var(--white); }
+    .tour-picker-trigger:hover { border-color: rgba(255,255,255,0.3); }
+
+    .tour-modal-overlay {
+      position: fixed; inset: 0; z-index: 10000;
+      background: rgba(0,0,0,0.65);
+      display: none; align-items: center; justify-content: center;
+      padding: 20px;
+    }
+    .tour-modal-overlay.open { display: flex; }
+
+    .tour-modal {
+      background: var(--white); border-radius: 16px;
+      padding: 32px; max-width: 700px; width: 100%;
+      max-height: 90vh; overflow-y: auto;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.4);
+      animation: fadeUp 0.3s ease;
+    }
+
+    .tour-modal-header {
+      text-align: center; margin-bottom: 24px;
+    }
+    .tour-modal-header h3 {
+      font-family: var(--font-display); font-size: 26px;
+      font-weight: 700; color: var(--navy); margin-bottom: 4px;
+    }
+    .tour-modal-header p {
+      font-size: 14px; color: var(--text-mid);
+    }
+
+    .tour-modal-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+    }
+
+    .tour-modal-card {
+      border: 2px solid var(--border); border-radius: 12px;
+      overflow: hidden; cursor: pointer;
+      transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+    }
+    .tour-modal-card:hover {
+      border-color: var(--gold); transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    }
+
+    .tour-modal-card-img {
+      height: 130px; background-size: cover; background-position: center;
+      position: relative;
+    }
+    .tour-modal-card-img .tour-tag {
+      position: absolute; top: 10px; left: 10px;
+    }
+
+    .tour-modal-card-body { padding: 14px; }
+
+    .tour-modal-card-title {
+      font-family: var(--font-display); font-size: 16px;
+      font-weight: 700; color: var(--navy); margin-bottom: 6px; line-height: 1.2;
+    }
+    .tour-modal-card-desc {
+      font-size: 12px; color: var(--text-mid); line-height: 1.5;
+      margin-bottom: 10px;
+    }
+    .tour-modal-card-footer {
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .tour-modal-card-price {
+      font-family: var(--font-display); font-size: 20px;
+      font-weight: 700; color: var(--navy);
+    }
+    .tour-modal-card-price span {
+      font-size: 11px; font-weight: 400; color: var(--text-light);
+      font-family: var(--font-body); display: block;
+    }
+    .tour-modal-card-duration {
+      font-family: var(--font-mono); font-size: 11px;
+      color: var(--text-light); letter-spacing: 0.06em;
+    }
+
+    .tour-modal-close {
+      position: absolute; top: 16px; right: 20px;
+      background: none; border: none; font-size: 24px;
+      color: var(--text-light); cursor: pointer;
+      width: 36px; height: 36px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.2s;
+    }
+    .tour-modal-close:hover { background: rgba(0,0,0,0.06); }
+
+    @media (max-width: 560px) {
+      .tour-modal-grid { grid-template-columns: 1fr; }
+      .tour-modal { padding: 20px; }
+    }
+
     /* Hero card on right */
     .hero-card {
       background: rgba(255,255,255,0.05);
@@ -1284,13 +1385,10 @@
               </div>
               <div class="form-field">
                 <label>Tour Type</label>
-                <select id="quick-tour">
-                  <option value="">Choose a tour...</option>
-                  <option value="Classic">Old Town Walking Tour — Classic (3h)</option>
-                  <option value="Signature">Best of Tallinn Shore Excursion — Signature (6h)</option>
-                  <option value="Most Complete">Old Town, Kadriorg & Pirita — Most Complete (8h)</option>
-                  <option value="Differentiation">Hidden Stories & Local Life — Differentiation (4h)</option>
-                </select>
+                <input type="hidden" id="quick-tour" value="">
+                <button type="button" class="tour-picker-trigger" id="tour-picker-btn">
+                  Choose a tour...
+                </button>
               </div>
               <a href="#booking" id="quick-book-btn" class="btn btn-primary" style="margin-top: 4px; justify-content: center;">
                 Book Now →
@@ -1921,6 +2019,76 @@
   <!-- Scroll to top -->
   <button id="scroll-top" aria-label="Scroll to top">↑</button>
 
+  <!-- Tour Picker Modal -->
+  <div class="tour-modal-overlay" id="tour-modal">
+    <div class="tour-modal" style="position:relative;">
+      <button class="tour-modal-close" id="tour-modal-close">✕</button>
+      <div class="tour-modal-header">
+        <h3>Choose Your Tour</h3>
+        <p>Select a tour to see what's included</p>
+      </div>
+      <div class="tour-modal-grid">
+
+        <div class="tour-modal-card" data-tour-value="Classic" data-tour-label="Old Town Walking Tour — Classic (3h)">
+          <div class="tour-modal-card-img" style="background-image: linear-gradient(to bottom, rgba(0,0,0,0) 50%, rgba(0,0,0,0.35) 100%), url('/tour-medieval.png');">
+            <span class="tour-tag">Classic</span>
+          </div>
+          <div class="tour-modal-card-body">
+            <div class="tour-modal-card-title">Tallinn Old Town Private Walking Tour</div>
+            <p class="tour-modal-card-desc">The essential Tallinn on foot — cobblestones, medieval walls, and centuries of history with your own expert local guide.</p>
+            <div class="tour-modal-card-footer">
+              <div class="tour-modal-card-price">$89 <span>per person</span></div>
+              <div class="tour-modal-card-duration">⏱ 3 hours</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tour-modal-card" data-tour-value="Signature" data-tour-label="Best of Tallinn Shore Excursion — Signature (6h)">
+          <div class="tour-modal-card-img" style="background-image: linear-gradient(to bottom, rgba(0,0,0,0) 50%, rgba(0,0,0,0.35) 100%), url('/tour-explorer.png');">
+            <span class="tour-tag tag-signature">Signature</span>
+          </div>
+          <div class="tour-modal-card-body">
+            <div class="tour-modal-card-title">Best of Tallinn Private Shore Excursion</div>
+            <p class="tour-modal-card-desc">Old Town, Kadriorg Palace, Baltic coast, and a local restaurant lunch — the most popular full-day Tallinn experience.</p>
+            <div class="tour-modal-card-footer">
+              <div class="tour-modal-card-price">$149 <span>per person</span></div>
+              <div class="tour-modal-card-duration">⏱ 6 hours</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tour-modal-card" data-tour-value="Most Complete" data-tour-label="Old Town, Kadriorg & Pirita — Most Complete (8h)">
+          <div class="tour-modal-card-img" style="background-image: linear-gradient(to bottom, rgba(0,0,0,0) 50%, rgba(0,0,0,0.35) 100%), url('/tour-custom.png');">
+            <span class="tour-tag tag-complete">Most Complete</span>
+          </div>
+          <div class="tour-modal-card-body">
+            <div class="tour-modal-card-title">Tallinn Old Town, Kadriorg & Pirita Tour</div>
+            <p class="tour-modal-card-desc">Every highlight, no rushing. A full day covering medieval Old Town, Baroque gardens, and the Baltic coastline.</p>
+            <div class="tour-modal-card-footer">
+              <div class="tour-modal-card-price">$179 <span>per person</span></div>
+              <div class="tour-modal-card-duration">⏱ 8 hours</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tour-modal-card" data-tour-value="Differentiation" data-tour-label="Hidden Stories & Local Life — Differentiation (4h)">
+          <div class="tour-modal-card-img" style="background-image: linear-gradient(to bottom, rgba(0,0,0,0) 50%, rgba(0,0,0,0.35) 100%), url('/tour-stories.png');">
+            <span class="tour-tag tag-diff">Differentiation</span>
+          </div>
+          <div class="tour-modal-card-body">
+            <div class="tour-modal-card-title">Tallinn Hidden Stories & Local Life Tour</div>
+            <p class="tour-modal-card-desc">Skip the postcard version. Explore creative neighborhoods, street art, local cafés, and stories no bus tour tells.</p>
+            <div class="tour-modal-card-footer">
+              <div class="tour-modal-card-price">$109 <span>per person</span></div>
+              <div class="tour-modal-card-duration">⏱ 4 hours</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
   <!-- ═══════════════════════════════════════
        JAVASCRIPT
   ═══════════════════════════════════════ -->
@@ -1954,12 +2122,35 @@
 
     revealEls.forEach(el => observer.observe(el));
 
+    // ── Tour Picker Modal ──
+    const tourModal = document.getElementById('tour-modal');
+    const tourPickerBtn = document.getElementById('tour-picker-btn');
+    const tourModalClose = document.getElementById('tour-modal-close');
+    const quickTourInput = document.getElementById('quick-tour');
+
+    tourPickerBtn.addEventListener('click', () => tourModal.classList.add('open'));
+    tourModalClose.addEventListener('click', () => tourModal.classList.remove('open'));
+    tourModal.addEventListener('click', (e) => {
+      if (e.target === tourModal) tourModal.classList.remove('open');
+    });
+
+    document.querySelectorAll('.tour-modal-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const val = card.dataset.tourValue;
+        const label = card.dataset.tourLabel;
+        quickTourInput.value = val;
+        tourPickerBtn.textContent = label;
+        tourPickerBtn.classList.add('has-value');
+        tourModal.classList.remove('open');
+      });
+    });
+
     // ── Quick Booking → Booking form prefill ──
     const quickBookBtn = document.getElementById('quick-book-btn');
     quickBookBtn.addEventListener('click', function () {
       const qDate = document.getElementById('quick-date').value;
       const qGuests = document.getElementById('quick-guests').value;
-      const qTour = document.getElementById('quick-tour').value;
+      const qTour = quickTourInput.value;
 
       const bookingForm = document.getElementById('booking-form');
 
