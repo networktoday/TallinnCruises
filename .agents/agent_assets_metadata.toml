@@ -18,3 +18,9 @@ id = "2usTfZcWgJM2JZhnc0ieF"
 uri = "file://artifacts/tallinn-shore-tours/public/tour-custom.png"
 type = "image"
 title = "Private guide Tallinn intimate tour"
+
+[[generated]]
+id = "xPeEblfEwc724DzN0O218"
+uri = "file://artifacts/tallinn-shore-tours/public/tour-stories.png"
+type = "image"
+title = "generated_image"

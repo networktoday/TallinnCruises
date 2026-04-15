@@ -555,7 +555,7 @@
 
     .tours-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(2, 1fr);
       gap: 24px;
     }
 
@@ -603,6 +603,33 @@
       background: linear-gradient(to bottom, rgba(26,17,40,0.08) 0%, rgba(26,17,40,0.72) 100%),
                   url('/tour-custom.png') center/cover no-repeat;
     }
+    .tour-card-header.h-stories {
+      background: linear-gradient(to bottom, rgba(11,45,30,0.08) 0%, rgba(11,45,30,0.72) 100%),
+                  url('/tour-stories.png') center/cover no-repeat;
+    }
+
+    .tour-tag {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 10px; font-weight: 500;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      padding: 3px 10px; border-radius: 4px;
+      margin-bottom: 8px;
+      background: var(--sand); color: var(--text-mid);
+      border: 1px solid rgba(0,0,0,0.08);
+    }
+    .tour-tag.tag-signature {
+      background: var(--gold-pale); color: var(--gold);
+      border-color: rgba(212,148,30,0.25);
+    }
+    .tour-tag.tag-complete {
+      background: rgba(13,147,115,0.08); color: var(--teal);
+      border-color: rgba(13,147,115,0.2);
+    }
+    .tour-tag.tag-diff {
+      background: rgba(11,45,62,0.07); color: var(--navy);
+      border-color: rgba(11,45,62,0.18);
+    }
 
     .tour-card-header-pattern {
       position: absolute; inset: 0; opacity: 0;
@@ -631,7 +658,7 @@
 
     .tour-card-desc {
       font-size: 14px; color: var(--text-mid);
-      font-weight: 300; line-height: 1.7; margin-bottom: 16px;
+      font-weight: 400; line-height: 1.7; margin-bottom: 16px;
     }
 
     .tour-highlights { list-style: none; margin-bottom: 20px; }
@@ -1179,9 +1206,10 @@
                 <label>Tour Type</label>
                 <select>
                   <option value="">Choose a tour...</option>
-                  <option>Medieval Highlights (3h)</option>
-                  <option>Full City Explorer (6h)</option>
-                  <option>Custom Private Tour</option>
+                  <option>Old Town Walking Tour — Classic (3h)</option>
+                  <option>Best of Tallinn Shore Excursion — Signature (6h)</option>
+                  <option>Old Town, Kadriorg & Pirita — Most Complete (8h)</option>
+                  <option>Hidden Stories & Local Life — Differentiation (4h)</option>
                 </select>
               </div>
               <a href="#booking" class="btn btn-primary" style="margin-top: 4px; justify-content: center;">
@@ -1281,10 +1309,11 @@
     <div class="container">
       <div class="tours-header reveal">
         <span class="label">Our Tours</span>
-        <h2>Three ways to see <em>Tallinn</em></h2>
+        <h2>Four ways to see <em>Tallinn</em></h2>
       </div>
       <div class="tours-grid">
 
+        <!-- CLASSIC -->
         <div class="tour-card reveal">
           <div class="tour-card-header h-medieval">
             <div class="tour-card-header-pattern"></div>
@@ -1292,11 +1321,12 @@
             <span class="tour-duration">⏱ 3 hours</span>
           </div>
           <div class="tour-card-body">
-            <div class="tour-card-title">Medieval Highlights</div>
-            <p class="tour-card-desc">The essential Tallinn in half a day — perfect if your ship has a short port call or you prefer time to explore on your own.</p>
+            <span class="tour-tag">Classic</span>
+            <div class="tour-card-title">Tallinn Old Town Private Walking Tour</div>
+            <p class="tour-card-desc">The essential Tallinn on foot — cobblestones, medieval walls, and centuries of history with just your group and an expert local guide.</p>
             <ul class="tour-highlights">
               <li>UNESCO Old Town walking tour</li>
-              <li>Toompea Castle & viewpoints</li>
+              <li>Toompea Castle & panoramic viewpoints</li>
               <li>Alexander Nevsky Cathedral</li>
               <li>Town Hall Square & medieval pharmacy</li>
             </ul>
@@ -1311,21 +1341,23 @@
           </div>
         </div>
 
+        <!-- SIGNATURE -->
         <div class="tour-card featured reveal reveal-delay-1">
           <span class="tour-featured-badge">Most Popular</span>
           <div class="tour-card-header h-explorer">
             <div class="tour-card-header-pattern"></div>
-            <div class="tour-emoji">🌊</div>
+            <div class="tour-emoji">⭐</div>
             <span class="tour-duration">⏱ 6 hours</span>
           </div>
           <div class="tour-card-body">
-            <div class="tour-card-title">Full City Explorer</div>
-            <p class="tour-card-desc">From medieval towers to the Baltic coast — the full Tallinn experience with time to breathe and explore at your own pace.</p>
+            <span class="tour-tag tag-signature">Signature</span>
+            <div class="tour-card-title">Best of Tallinn Private Shore Excursion</div>
+            <p class="tour-card-desc">Old Town on foot, then Kadriorg Palace, the Baltic coastline, and lunch at a local restaurant — the most complete one-day Tallinn experience.</p>
             <ul class="tour-highlights">
-              <li>Old Town + hidden local neighborhoods</li>
-              <li>Kadriorg Palace & gardens</li>
+              <li>Old Town walking tour</li>
+              <li>Kadriorg Palace & rose garden</li>
               <li>Song Festival Grounds</li>
-              <li>Pirita Beach viewpoint</li>
+              <li>Pirita Beach & sea views</li>
               <li>Lunch at a local restaurant</li>
             </ul>
             <div class="tour-card-footer">
@@ -1339,28 +1371,58 @@
           </div>
         </div>
 
-        <div class="tour-card reveal reveal-delay-2">
+        <!-- MOST COMPLETE -->
+        <div class="tour-card reveal reveal-delay-1">
           <div class="tour-card-header h-custom">
             <div class="tour-card-header-pattern"></div>
-            <div class="tour-emoji">✨</div>
-            <span class="tour-duration">⏱ Your choice</span>
+            <div class="tour-emoji">🗺️</div>
+            <span class="tour-duration">⏱ 8 hours</span>
           </div>
           <div class="tour-card-body">
-            <div class="tour-card-title">Custom Private Tour</div>
-            <p class="tour-card-desc">Tell us what you love — architecture, food, history, nature — and we'll build Tallinn entirely around you. Your perfect day, start to finish.</p>
+            <span class="tour-tag tag-complete">Most Complete</span>
+            <div class="tour-card-title">Tallinn Old Town, Kadriorg & Pirita Tour</div>
+            <p class="tour-card-desc">Every highlight, no rushing. A full day covering medieval Old Town, Baroque gardens, the Baltic coastline, and Tallinn's most scenic neighborhoods.</p>
             <ul class="tour-highlights">
-              <li>Fully personalized itinerary</li>
-              <li>You choose the pace & stops</li>
-              <li>Add photography, food tastings, cycling</li>
-              <li>Ideal for special occasions</li>
+              <li>Deep-dive Old Town with hidden spots</li>
+              <li>Kadriorg Art Museum & palace gardens</li>
+              <li>Pirita Convent ruins & coastal views</li>
+              <li>Latvian Market & local lunch stop</li>
             </ul>
             <div class="tour-card-footer">
               <div class="tour-price">
                 <span class="tour-price-from">from</span>
-                <span class="tour-price-amount">$199</span>
-                <span class="tour-price-per">for the group</span>
+                <span class="tour-price-amount">$179</span>
+                <span class="tour-price-per">per person</span>
               </div>
-              <a href="#booking" class="btn btn-dark">Get a Quote →</a>
+              <a href="#booking" class="btn btn-dark">Book This →</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- DIFFERENTIATION -->
+        <div class="tour-card reveal reveal-delay-2">
+          <div class="tour-card-header h-stories">
+            <div class="tour-card-header-pattern"></div>
+            <div class="tour-emoji">🎭</div>
+            <span class="tour-duration">⏱ 4 hours</span>
+          </div>
+          <div class="tour-card-body">
+            <span class="tour-tag tag-diff">Differentiation</span>
+            <div class="tour-card-title">Tallinn Hidden Stories & Local Life Tour</div>
+            <p class="tour-card-desc">Skip the postcard version. Explore creative neighborhoods, street art, local cafés, and stories no group bus tour ever tells.</p>
+            <ul class="tour-highlights">
+              <li>Kalamaja & Telliskivi Creative Quarter</li>
+              <li>Balti jaam market & local street food</li>
+              <li>Street art & independent creative hubs</li>
+              <li>Estonian café culture & local snacks</li>
+            </ul>
+            <div class="tour-card-footer">
+              <div class="tour-price">
+                <span class="tour-price-from">from</span>
+                <span class="tour-price-amount">$109</span>
+                <span class="tour-price-per">per person</span>
+              </div>
+              <a href="#booking" class="btn btn-dark">Book This →</a>
             </div>
           </div>
         </div>
@@ -1610,9 +1672,10 @@
                 <label>Tour Type *</label>
                 <select name="tour_type" required>
                   <option value="">Select...</option>
-                  <option>Medieval Highlights (3h) — from $89/pp</option>
-                  <option>Full City Explorer (6h) — from $149/pp</option>
-                  <option>Custom Private Tour — get a quote</option>
+                  <option>Old Town Walking Tour — Classic (3h) — from $89/pp</option>
+                  <option>Best of Tallinn Shore Excursion — Signature (6h) — from $149/pp</option>
+                  <option>Old Town, Kadriorg & Pirita — Most Complete (8h) — from $179/pp</option>
+                  <option>Hidden Stories & Local Life — Differentiation (4h) — from $109/pp</option>
                 </select>
               </div>
 
