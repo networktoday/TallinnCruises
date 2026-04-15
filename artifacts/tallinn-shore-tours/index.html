@@ -1260,25 +1260,25 @@
               </div>
               <div class="form-field">
                 <label>Number of Guests</label>
-                <select>
+                <select id="quick-guests">
                   <option value="">Select guests...</option>
-                  <option>1–2 guests</option>
-                  <option>3–4 guests</option>
-                  <option>5–6 guests</option>
-                  <option>7+ guests</option>
+                  <option value="1–2 guests">1–2 guests</option>
+                  <option value="3–4 guests">3–4 guests</option>
+                  <option value="5–6 guests">5–6 guests</option>
+                  <option value="7–10 guests">7+ guests</option>
                 </select>
               </div>
               <div class="form-field">
                 <label>Tour Type</label>
-                <select>
+                <select id="quick-tour">
                   <option value="">Choose a tour...</option>
-                  <option>Old Town Walking Tour — Classic (3h)</option>
-                  <option>Best of Tallinn Shore Excursion — Signature (6h)</option>
-                  <option>Old Town, Kadriorg & Pirita — Most Complete (8h)</option>
-                  <option>Hidden Stories & Local Life — Differentiation (4h)</option>
+                  <option value="Classic">Old Town Walking Tour — Classic (3h)</option>
+                  <option value="Signature">Best of Tallinn Shore Excursion — Signature (6h)</option>
+                  <option value="Most Complete">Old Town, Kadriorg & Pirita — Most Complete (8h)</option>
+                  <option value="Differentiation">Hidden Stories & Local Life — Differentiation (4h)</option>
                 </select>
               </div>
-              <a href="#booking" class="btn btn-primary" style="margin-top: 4px; justify-content: center;">
+              <a href="#booking" id="quick-book-btn" class="btn btn-primary" style="margin-top: 4px; justify-content: center;">
                 Book Now →
               </a>
               <p class="hero-card-note">Free cancellation · No credit card required</p>
@@ -1930,6 +1930,41 @@
     }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
 
     revealEls.forEach(el => observer.observe(el));
+
+    // ── Quick Booking → Booking form prefill ──
+    const quickBookBtn = document.getElementById('quick-book-btn');
+    quickBookBtn.addEventListener('click', function () {
+      const qDate = document.getElementById('quick-date').value;
+      const qGuests = document.getElementById('quick-guests').value;
+      const qTour = document.getElementById('quick-tour').value;
+
+      const bookingForm = document.getElementById('booking-form');
+
+      if (qDate) {
+        bookingForm.querySelector('[name="arrival_date"]').value = qDate;
+      }
+
+      if (qGuests) {
+        const guestSelect = bookingForm.querySelector('[name="guests"]');
+        for (const opt of guestSelect.options) {
+          if (opt.textContent === qGuests) {
+            guestSelect.value = opt.value;
+            break;
+          }
+        }
+      }
+
+      if (qTour) {
+        const tourSelect = bookingForm.querySelector('[name="tour_type"]');
+        for (const opt of tourSelect.options) {
+          if (opt.textContent.includes(qTour)) {
+            tourSelect.value = opt.value;
+            break;
+          }
+        }
+        tourSelect.dispatchEvent(new Event('change'));
+      }
+    });
 
     // ── Add-on cards ──
     const addonCards = document.querySelectorAll('.addon-card');
