@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Tallinn Shore Tours"
+version = "1.0.0"
+id = "artifacts/tallinn-shore-tours"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 20588
+
+[services.development]
+run = "pnpm --filter @workspace/tallinn-shore-tours run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/tallinn-shore-tours", "run", "build" ]
+publicDir = "artifacts/tallinn-shore-tours/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "20588"
+BASE_PATH = "/"
