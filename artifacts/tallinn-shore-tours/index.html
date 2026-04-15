@@ -971,6 +971,75 @@
 
     .booking-form .btn { grid-column: 1/-1; justify-content: center; font-size: 16px; padding: 16px; }
 
+    /* ── Add-ons ── */
+    .addons-divider {
+      grid-column: 1 / -1;
+      display: flex; align-items: center; gap: 14px;
+      font-family: var(--font-mono); font-size: 10px;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      color: rgba(255,255,255,0.35);
+    }
+    .addons-divider::before, .addons-divider::after {
+      content: ''; flex: 1; height: 1px;
+      background: rgba(255,255,255,0.1);
+    }
+
+    .addons-grid {
+      grid-column: 1 / -1;
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .addon-card {
+      display: flex; align-items: center; justify-content: space-between;
+      background: rgba(255,255,255,0.05);
+      border: 1.5px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      padding: 14px 16px;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      user-select: none;
+    }
+    .addon-card:hover:not(.addon-disabled) { border-color: rgba(212,148,30,0.4); }
+    .addon-card.addon-active {
+      border-color: var(--gold-light);
+      background: rgba(212,148,30,0.06);
+    }
+    .addon-card.addon-disabled {
+      opacity: 0.4; cursor: default;
+    }
+    .addon-card input[type="checkbox"] { display: none; }
+
+    .addon-card-body { display: flex; align-items: center; gap: 12px; }
+    .addon-emoji { font-size: 22px; line-height: 1; }
+    .addon-name { font-size: 13px; font-weight: 600; color: var(--white); display: block; }
+    .addon-hint { font-size: 11px; color: rgba(255,255,255,0.4); display: block; margin-top: 1px; }
+
+    .addon-check {
+      width: 18px; height: 18px; border-radius: 5px; flex-shrink: 0;
+      border: 1.5px solid rgba(255,255,255,0.25);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; color: transparent;
+      transition: all 0.2s;
+    }
+    .addon-card.addon-active .addon-check {
+      background: var(--gold); border-color: var(--gold); color: var(--navy);
+    }
+
+    .addon-included-tag {
+      font-family: var(--font-mono); font-size: 9px;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--teal); background: rgba(13,147,115,0.12);
+      border: 1px solid rgba(13,147,115,0.25);
+      padding: 3px 8px; border-radius: 4px; white-space: nowrap;
+    }
+
+    .addon-extra-field {
+      grid-column: 1 / -1;
+      display: none;
+    }
+    .addon-extra-field.visible { display: flex; }
+
     .form-success {
       display: none;
       text-align: center; padding: 24px;
@@ -1679,6 +1748,78 @@
                 </select>
               </div>
 
+              <!-- ── Optional Add-ons ── -->
+              <div class="addons-divider">Optional Add-ons</div>
+
+              <div class="addons-grid">
+
+                <!-- Transfer -->
+                <label class="addon-card" id="addon-transfer-card">
+                  <input type="checkbox" name="addon_transfer" value="Private Transfer (port pickup & drop-off)">
+                  <div class="addon-card-body">
+                    <span class="addon-emoji">🚐</span>
+                    <div>
+                      <span class="addon-name">Private Transfer</span>
+                      <span class="addon-hint">Port pickup & drop-off</span>
+                    </div>
+                  </div>
+                  <span class="addon-included-tag" id="transfer-included-tag" style="display:none">Included ✓</span>
+                  <span class="addon-check" id="transfer-check">✓</span>
+                </label>
+
+                <!-- Custom Duration -->
+                <label class="addon-card" id="addon-duration-card">
+                  <input type="checkbox" id="addon-duration-check" name="addon_custom_duration" value="yes">
+                  <div class="addon-card-body">
+                    <span class="addon-emoji">⏱</span>
+                    <div>
+                      <span class="addon-name">Custom Duration</span>
+                      <span class="addon-hint">Extend or shorten your tour</span>
+                    </div>
+                  </div>
+                  <span class="addon-check">✓</span>
+                </label>
+
+                <!-- Lunch -->
+                <label class="addon-card" id="addon-lunch-card">
+                  <input type="checkbox" name="addon_lunch" value="Add lunch at a curated local restaurant">
+                  <div class="addon-card-body">
+                    <span class="addon-emoji">🍽️</span>
+                    <div>
+                      <span class="addon-name">Lunch</span>
+                      <span class="addon-hint">Curated local restaurant</span>
+                    </div>
+                  </div>
+                  <span class="addon-check">✓</span>
+                </label>
+
+                <!-- Extra Tickets -->
+                <label class="addon-card" id="addon-tickets-card">
+                  <input type="checkbox" id="addon-tickets-check" name="addon_tickets" value="yes">
+                  <div class="addon-card-body">
+                    <span class="addon-emoji">🎟️</span>
+                    <div>
+                      <span class="addon-name">Extra Tickets</span>
+                      <span class="addon-hint">Museums & attractions</span>
+                    </div>
+                  </div>
+                  <span class="addon-check">✓</span>
+                </label>
+
+              </div><!-- /addons-grid -->
+
+              <!-- Conditional: custom hours -->
+              <div class="bfield addon-extra-field" id="custom-duration-field">
+                <label>Desired Duration (hours)</label>
+                <input type="number" name="custom_hours" min="1" max="12" placeholder="e.g. 5">
+              </div>
+
+              <!-- Conditional: tickets detail -->
+              <div class="bfield addon-extra-field" id="extra-tickets-field">
+                <label>Which attractions? (optional)</label>
+                <input type="text" name="addon_tickets_detail" placeholder="e.g. Kumu Art Museum, Tallinn TV Tower…">
+              </div>
+
               <div class="bfield full">
                 <label>Your Email Address *</label>
                 <input type="email" name="email" placeholder="your@email.com" required>
@@ -1792,6 +1933,50 @@
     }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
 
     revealEls.forEach(el => observer.observe(el));
+
+    // ── Add-on cards ──
+    const addonCards = document.querySelectorAll('.addon-card');
+
+    addonCards.forEach(card => {
+      card.addEventListener('click', function () {
+        if (this.classList.contains('addon-disabled')) return;
+        const cb = this.querySelector('input[type="checkbox"]');
+        if (!cb) return;
+        cb.checked = !cb.checked;
+        this.classList.toggle('addon-active', cb.checked);
+
+        // Toggle conditional fields
+        if (cb.id === 'addon-duration-check') {
+          document.getElementById('custom-duration-field').classList.toggle('visible', cb.checked);
+        }
+        if (cb.id === 'addon-tickets-check') {
+          document.getElementById('extra-tickets-field').classList.toggle('visible', cb.checked);
+        }
+      });
+    });
+
+    // Transfer: disable when tour already includes transport
+    const tourSelect = document.getElementById('booking-form').querySelector('[name="tour_type"]');
+    const transferCard = document.getElementById('addon-transfer-card');
+    const transferIncludedTag = document.getElementById('transfer-included-tag');
+    const transferCheck = document.getElementById('transfer-check');
+
+    function syncTransfer() {
+      const val = tourSelect.value;
+      const included = val.includes('Signature') || val.includes('Most Complete');
+      transferCard.classList.toggle('addon-disabled', included);
+      transferIncludedTag.style.display = included ? 'inline-flex' : 'none';
+      transferCheck.style.display = included ? 'none' : 'flex';
+      if (included) {
+        const cb = transferCard.querySelector('input');
+        cb.checked = false;
+        transferCard.classList.remove('addon-active');
+      }
+    }
+    if (tourSelect) {
+      tourSelect.addEventListener('change', syncTransfer);
+      syncTransfer();
+    }
 
     // ── FAQ accordion ──
     document.querySelectorAll('.faq-question').forEach(btn => {
