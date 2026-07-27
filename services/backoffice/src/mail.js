@@ -35,7 +35,17 @@ export async function sendMail({ to, subject, text, html }) {
  * Availability request sent to every guide. The wording is fixed by the client;
  * SI / NO are links carrying the request token.
  */
-export function guideRequestMail({ guide, hours, dateLabel, yesUrl, noUrl }) {
+export function guideRequestMail({
+  guide,
+  hours,
+  dateLabel,
+  yesUrl,
+  noUrl,
+  packageName,
+  tourLabel,
+  itinerary = [],
+  guestsLabel,
+}) {
   const text = [
     `Gentile ${guide.first_name},`,
     `sei disponibile per fare una guida di ${hours} ore per il giorno ${dateLabel} ?`,
@@ -44,10 +54,20 @@ export function guideRequestMail({ guide, hours, dateLabel, yesUrl, noUrl }) {
     "",
     `SI  -> ${yesUrl}`,
     `NO  -> ${noUrl}`,
-  ].join("\n");
+    "",
+    "— Dettagli dell'escursione —",
+    `Pacchetto scelto: ${packageName || tourLabel}`,
+    `Tour: ${tourLabel}`,
+    guestsLabel ? `Partecipanti: ${guestsLabel}` : null,
+    "",
+    "Itinerario incluso:",
+    ...itinerary.map((step) => `  · ${step}`),
+  ]
+    .filter((line) => line !== null)
+    .join("\n");
 
   const html = `<!doctype html>
-<div style="font-family:Arial,Helvetica,sans-serif;font-size:15px;color:#1b2b38;line-height:1.6">
+<div style="font-family:Arial,Helvetica,sans-serif;font-size:15px;color:#1b2b38;line-height:1.6;max-width:620px">
   <p>Gentile ${escapeHtml(guide.first_name)},</p>
   <p>sei disponibile per fare una guida di <strong>${hours} ore</strong> per il giorno <strong>${escapeHtml(dateLabel)}</strong> ?</p>
   <p>Rispondere: SI oppure NO</p>
@@ -55,11 +75,27 @@ export function guideRequestMail({ guide, hours, dateLabel, yesUrl, noUrl }) {
     <a href="${yesUrl}" style="background:#0d7a4f;color:#fff;text-decoration:none;padding:13px 34px;font-weight:bold;display:inline-block">SI</a>
     <a href="${noUrl}" style="background:#8d2f2f;color:#fff;text-decoration:none;padding:13px 34px;font-weight:bold;display:inline-block;margin-left:12px">NO</a>
   </p>
-  <p style="font-size:12px;color:#6b7885">Tallinn Private Tours</p>
+
+  <div style="border-top:1px solid #e2ddd2;margin-top:30px;padding-top:22px">
+    <p style="margin:0 0 12px;font-size:11px;font-weight:bold;letter-spacing:.14em;text-transform:uppercase;color:#9C7328">Dettagli dell'escursione</p>
+    <table style="border-collapse:collapse">
+      <tr><td style="padding:5px 18px 5px 0;color:#6b7885;font-size:13px">Pacchetto scelto</td><td style="padding:5px 0"><strong>${escapeHtml(packageName || tourLabel)}</strong></td></tr>
+      <tr><td style="padding:5px 18px 5px 0;color:#6b7885;font-size:13px">Tour</td><td style="padding:5px 0">${escapeHtml(tourLabel)}</td></tr>
+      ${guestsLabel ? `<tr><td style="padding:5px 18px 5px 0;color:#6b7885;font-size:13px">Partecipanti</td><td style="padding:5px 0">${escapeHtml(guestsLabel)}</td></tr>` : ""}
+      <tr><td style="padding:5px 18px 5px 0;color:#6b7885;font-size:13px">Durata</td><td style="padding:5px 0">${hours} ore</td></tr>
+    </table>
+
+    <p style="margin:20px 0 8px;font-size:13px;color:#6b7885">Itinerario incluso nel pacchetto:</p>
+    <ul style="margin:0;padding-left:20px">
+      ${itinerary.map((step) => `<li style="margin-bottom:6px">${escapeHtml(step)}</li>`).join("")}
+    </ul>
+  </div>
+
+  <p style="margin-top:28px;font-size:12px;color:#6b7885">Tallinn Private Tours</p>
 </div>`;
 
   return {
-    subject: `Disponibilità guida — ${dateLabel} (${hours} ore)`,
+    subject: `Disponibilità guida — ${dateLabel} · ${packageName || tourLabel} (${hours} ore)`,
     text,
     html,
   };
@@ -110,6 +146,41 @@ export function customerSummaryMail({ booking, fmtMoney, fmtDate }) {
     html: wrap(`<p>Thank you for your booking request — here is a summary.</p>
       <table style="border-collapse:collapse;margin:22px 0">${rows(pairs)}</table>
       <p>We are confirming your guide now and will email you within 24 hours.</p>`),
+  };
+}
+
+/** Deposit payment request, sent on demand from the backoffice. */
+export function depositRequestMail({ booking, payUrl, fmtMoney, fmtDate }) {
+  const pairs = [
+    ["Reference", booking.ref],
+    ["Tour", booking.tour_label],
+    ["Date", fmtDate(booking.excursion_date)],
+    ["Guests", booking.guests_label],
+    ["Total", fmtMoney(booking.total_cents, booking.currency)],
+    ["Deposit to pay now (10%)", fmtMoney(booking.deposit_cents, booking.currency)],
+    [
+      "Balance on the day",
+      fmtMoney(booking.total_cents - booking.deposit_cents, booking.currency),
+    ],
+  ];
+
+  return {
+    subject: `Confirm your Tallinn tour — pay the ${fmtMoney(booking.deposit_cents, booking.currency)} deposit`,
+    text: [
+      `Your private tour is reserved. To confirm it, please pay the 10% deposit:`,
+      payUrl,
+      ``,
+      ...pairs.map(([k, v]) => `${k}: ${v}`),
+      ``,
+      `The payment link stays valid for 24 hours — reply to this email if it expires.`,
+      `Tallinn Private Tours`,
+    ].join("\n"),
+    html: wrap(`<p>Your private tour is reserved. To confirm it, please pay the 10% deposit.</p>
+      <p style="margin:26px 0">
+        <a href="${payUrl}" style="background:#0C2032;color:#fff;text-decoration:none;padding:14px 32px;font-weight:bold;display:inline-block">Pay the deposit</a>
+      </p>
+      <table style="border-collapse:collapse;margin:22px 0">${rows(pairs)}</table>
+      <p style="font-size:13px;color:#6b7885">The payment link stays valid for 24 hours — reply to this email if it expires.</p>`),
   };
 }
 

@@ -1406,7 +1406,7 @@
         <div class="why-copy reveal">
           <span class="eyebrow">Why go private?</span>
           <h2>Cruise line tours are fine. Ours are <em>yours.</em></h2>
-          <p>The cruise ship will sell you a seat on a 50-person bus with a fixed schedule and a rushed lunch stop. With over 20 years of experience, we give you Tallinn the way it deserves to be seen — at your pace, with people you actually like.</p>
+          <p>The cruise ship will sell you a seat on a 50-person bus with a fixed schedule and everything rushed. With over 20 years of experience, we give you Tallinn the way it deserves to be seen — at your pace, with people you actually like.</p>
           <a href="#tours" class="btn btn-primary">See Our Tours →</a>
         </div>
         <div class="reveal reveal-delay-2">
@@ -1848,7 +1848,7 @@
             <p class="form-success-text">We'll confirm your booking within 24 hours. Check your email for details.</p>
           </div>
 
-          <form id="booking-form" action="https://formspree.io/f/YOUR_FORMSPREE_ID" method="POST">
+          <form id="booking-form" action="/api/bookings" method="POST">
             <div class="booking-form">
 
               <div class="bfield">
@@ -1865,11 +1865,11 @@
                 <label>Number of Guests *</label>
                 <select name="guests" required>
                   <option value="">Select...</option>
-                  <option>1–2 guests</option>
-                  <option>3–4 guests</option>
-                  <option>5–6 guests</option>
-                  <option>7–10 guests</option>
-                  <option>11–15 guests</option>
+                  <option value="1-2">1–2 guests</option>
+                  <option value="3-4">3–4 guests</option>
+                  <option value="5-6">5–6 guests</option>
+                  <option value="7-10">7–10 guests</option>
+                  <option value="11-15">11–15 guests</option>
                 </select>
               </div>
 
@@ -1877,10 +1877,10 @@
                 <label>Tour Type *</label>
                 <select name="tour_type" required>
                   <option value="">Select...</option>
-                  <option>Old Town Walking Tour — Classic Essential (3h) — from $89/pp</option>
-                  <option>Best of Tallinn Shore Excursion — Signature Tour (6h) — from $149/pp</option>
-                  <option>Old Town, Kadriorg &amp; Pirita — Most Complete (8h) — from $179/pp</option>
-                  <option>Hidden Stories &amp; Local Life — Most Original (4h) — from $109/pp</option>
+                  <option value="classic">Old Town Walking Tour — Classic Essential (3h) — from $89/pp</option>
+                  <option value="signature">Best of Tallinn Shore Excursion — Signature Tour (6h) — from $149/pp</option>
+                  <option value="complete">Old Town, Kadriorg &amp; Pirita — Most Complete (8h) — from $179/pp</option>
+                  <option value="original">Hidden Stories &amp; Local Life — Most Original (4h) — from $109/pp</option>
                 </select>
               </div>
 
@@ -2131,7 +2131,7 @@
 
     function syncTransfer() {
       const val = tourSelect.value;
-      const included = val.includes('Signature') || val.includes('Most Complete');
+      const included = val === 'signature' || val === 'complete';
       transferCard.classList.toggle('addon-disabled', included);
       transferIncludedTag.style.display = included ? 'inline-flex' : 'none';
       transferCheck.style.display = included ? 'none' : 'flex';
@@ -2176,36 +2176,60 @@
       }
 
       const btn = form.querySelector('button[type="submit"]');
+      const original = btn.textContent;
       btn.textContent = 'Sending...';
       btn.disabled = true;
 
-      // If Formspree ID is set, submit there
-      const action = form.getAttribute('action');
-      if (action.includes('YOUR_FORMSPREE_ID')) {
-        // Demo mode: just show success
-        await new Promise(r => setTimeout(r, 1200));
-        form.style.display = 'none';
-        success.classList.add('visible');
-        return;
-      }
+      const fd = new FormData(form);
+
+      const addons = [...form.querySelectorAll('.addon-card')]
+        .filter(card => !card.classList.contains('addon-disabled') && card.querySelector('input[type="checkbox"]').checked)
+        .map(card => card.querySelector('.addon-name').textContent.trim());
+
+      const extra = [];
+      const hours = fd.get('custom_hours');
+      const tickets = fd.get('addon_tickets_detail');
+      if (hours) extra.push(`Desired duration: ${hours}h`);
+      if (tickets) extra.push(`Attractions: ${tickets}`);
+
+      const payload = {
+        ship_name: fd.get('ship_name'),
+        excursion_date: fd.get('arrival_date'),
+        guests: fd.get('guests'),
+        tour: fd.get('tour_type'),
+        email: fd.get('email'),
+        phone: fd.get('phone'),
+        notes: [fd.get('requests'), ...extra].filter(Boolean).join(' · '),
+        addons
+      };
 
       try {
-        const data = new FormData(form);
-        const res = await fetch(action, {
+        const res = await fetch('/api/bookings', {
           method: 'POST',
-          body: data,
-          headers: { 'Accept': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
         });
+        const data = await res.json().catch(() => ({}));
+
+        if (res.ok && data.checkout_url) {
+          // On to Stripe Checkout for the 10% deposit.
+          window.location.href = data.checkout_url;
+          return;
+        }
+
         if (res.ok) {
           form.style.display = 'none';
           success.classList.add('visible');
-        } else {
-          btn.textContent = 'Try Again';
-          btn.disabled = false;
+          return;
         }
-      } catch {
+
         btn.textContent = 'Try Again';
         btn.disabled = false;
+        console.error('booking failed', data);
+      } catch (err) {
+        btn.textContent = 'Try Again';
+        btn.disabled = false;
+        console.error(err);
       }
     });
 

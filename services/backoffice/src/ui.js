@@ -132,7 +132,9 @@ export function answerTag(answer) {
 export function statusTag(status) {
   if (status === "deposit_paid")
     return '<span class="tag tag-paid">Deposit paid</span>';
+  if (status === "paid_in_full")
+    return '<span class="tag tag-paid">Paid in full</span>';
   if (status === "cancelled")
-    return '<span class="tag tag-pending">Cancelled</span>';
+    return '<span class="tag tag-no">Cancelled</span>';
   return '<span class="tag tag-wait">Awaiting deposit</span>';
 }

@@ -81,4 +81,15 @@ export async function migrate() {
   await q(
     `ALTER TABLE bookings ADD COLUMN IF NOT EXISTS internal_mail text NOT NULL DEFAULT 'pending';`,
   );
+
+  // Cancellation is a bookkeeping state: refunds stay a manual Stripe action.
+  await q(
+    `ALTER TABLE bookings ADD COLUMN IF NOT EXISTS cancelled_at timestamptz;`,
+  );
+  await q(
+    `ALTER TABLE bookings ADD COLUMN IF NOT EXISTS cancel_reason text;`,
+  );
+  await q(
+    `ALTER TABLE bookings ADD COLUMN IF NOT EXISTS status_before_cancel text;`,
+  );
 }

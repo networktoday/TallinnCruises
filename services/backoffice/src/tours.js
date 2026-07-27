@@ -2,23 +2,52 @@
 export const TOURS = {
   classic: {
     label: "Old Town Walking Tour — Classic Essential (3h)",
+    package: "Classic Essential",
     hours: 3,
     pricePp: 89,
+    itinerary: [
+      "UNESCO Old Town walking tour",
+      "Toompea Castle & panoramic viewpoints",
+      "Alexander Nevsky Cathedral",
+      "Town Hall Square & medieval pharmacy",
+    ],
   },
   signature: {
     label: "Best of Tallinn Shore Excursion — Signature Tour (6h)",
+    package: "Signature Tour",
     hours: 6,
     pricePp: 149,
+    itinerary: [
+      "Old Town walking tour",
+      "Kadriorg Palace & rose garden",
+      "Song Festival Grounds",
+      "Pirita Beach & sea views",
+      "Lunch at a local restaurant",
+    ],
   },
   complete: {
     label: "Old Town, Kadriorg & Pirita — Most Complete (8h)",
+    package: "Most Complete",
     hours: 8,
     pricePp: 179,
+    itinerary: [
+      "Deep-dive Old Town with hidden spots",
+      "Kadriorg Art Museum & palace gardens",
+      "Pirita Convent ruins & coastal views",
+      "Latvian Market & local lunch stop",
+    ],
   },
   original: {
     label: "Hidden Stories & Local Life — Most Original (4h)",
+    package: "Most Original",
     hours: 4,
     pricePp: 109,
+    itinerary: [
+      "Kalamaja & Telliskivi Creative Quarter",
+      "Balti jaam market & local street food",
+      "Street art & independent creative hubs",
+      "Estonian café culture & local snacks",
+    ],
   },
 };
 

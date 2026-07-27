@@ -6,6 +6,7 @@ import { migrate, q } from "./db.js";
 import { GUEST_RANGES, TOURS, priceBooking, DEPOSIT_RATE } from "./tours.js";
 import {
   customerSummaryMail,
+  depositRequestMail,
   escapeHtml as esc,
   guideRequestMail,
   internalNotificationMail,
@@ -210,6 +211,12 @@ app.post("/api/bookings", async (req, res) => {
       booking.id,
     ]);
 
+    // Customer summary, ops notification and guide requests. Detached: the
+    // customer is on their way to Stripe and should not wait for SMTP.
+    void dispatchBookingEmails(booking).catch((err) =>
+      console.error("dispatch failed:", err),
+    );
+
     res.json({
       ref: booking.ref,
       deposit: booking.deposit_cents,
@@ -278,11 +285,24 @@ async function dispatchBookingEmails(booking) {
     }
   }
 
+  // Guides are only asked once money is in — see askGuides().
   await askGuides(booking);
 }
 
-/** One availability request per active guide; safe to call more than once. */
+const PAID = new Set(["deposit_paid", "paid_in_full"]);
+
+/**
+ * One availability request per active guide. Refuses to run until the deposit
+ * has been paid, and is safe to call more than once.
+ */
 async function askGuides(booking) {
+  if (!PAID.has(booking.status)) {
+    console.log(
+      `guides not asked for ${booking.ref}: status is ${booking.status}`,
+    );
+    return { asked: 0, skipped: "unpaid" };
+  }
+
   const guides = await q(
     `SELECT * FROM guides WHERE active ORDER BY first_name, last_name`,
   );
@@ -298,6 +318,7 @@ async function askGuides(booking) {
     if (!inserted.rows.length) continue; // already asked
     await deliverGuideRequest(booking, guide, inserted.rows[0]);
   }
+  return { asked: guides.rows.length };
 }
 
 /* ──────────  deposit paid → confirm, and cover any missed guide  ────────── */
@@ -314,33 +335,23 @@ async function onDepositPaid(session) {
     [bookingId, session.payment_intent || null],
   );
   if (!rows.length) return; // already handled — webhooks retry
-  const booking = rows[0];
 
-  const guides = await q(
-    `SELECT * FROM guides WHERE active ORDER BY first_name, last_name`,
-  );
-  for (const guide of guides.rows) {
-    const token = crypto.randomBytes(24).toString("base64url");
-    const inserted = await q(
-      `INSERT INTO guide_requests (booking_id, guide_id, token)
-       VALUES ($1,$2,$3)
-       ON CONFLICT (booking_id, guide_id) DO NOTHING
-       RETURNING *`,
-      [booking.id, guide.id, token],
-    );
-    if (!inserted.rows.length) continue;
-
-    await deliverGuideRequest(booking, guide, inserted.rows[0]);
-  }
+  // Guides are asked on submission; this covers a guide added in between.
+  await askGuides(rows[0]);
 }
 
 async function deliverGuideRequest(booking, guide, request) {
+  const tour = TOURS[booking.tour_key] || {};
   const mail = guideRequestMail({
     guide,
     hours: booking.tour_hours,
     dateLabel: dateShort(booking.excursion_date),
     yesUrl: `${SITE_URL}/g/${request.token}/yes`,
     noUrl: `${SITE_URL}/g/${request.token}/no`,
+    packageName: tour.package,
+    tourLabel: booking.tour_label,
+    itinerary: tour.itinerary || [],
+    guestsLabel: booking.guests_label,
   });
 
   if (!mailConfigured) {
@@ -550,7 +561,10 @@ app.get("/admin", requireAuth, async (req, res) => {
   const body = `
     <div class="page-head">
       <div><div class="eyebrow">Backoffice</div><h1>Bookings</h1></div>
-      <a class="btn btn-ghost btn-sm" href="/admin">Refresh</a>
+      <div style="display:flex;gap:10px">
+        <a class="btn btn-ghost btn-sm" href="/admin">Refresh</a>
+        <a class="btn btn-gold btn-sm" href="/admin/bookings/new">+ New booking</a>
+      </div>
     </div>
     ${mailConfigured ? "" : `<div class="note note-bad"><strong>Email sending is off.</strong> Add <code>RESEND_API_KEY</code> to <code>.env</code> and restart the service. Availability requests are still created — open a booking to copy each guide's SI / NO link by hand.</div>`}
     <div class="stats">
@@ -571,6 +585,126 @@ app.get("/admin", requireAuth, async (req, res) => {
   res.send(layout({ title: "Bookings — Backoffice", tab: "bookings", body }));
 });
 
+/* ────────────────  admin: manual booking entry  ──────────────── */
+
+app.get("/admin/bookings/new", requireAuth, (req, res) => {
+  const tourOptions = Object.entries(TOURS)
+    .map(
+      ([key, t]) =>
+        `<option value="${key}">${esc(t.label)} — $${t.pricePp}/pp</option>`,
+    )
+    .join("");
+  const guestOptions = Object.entries(GUEST_RANGES)
+    .map(([key, r]) => `<option value="${key}">${esc(r.label)}</option>`)
+    .join("");
+
+  const body = `
+    <div class="page-head">
+      <div><div class="eyebrow">Backoffice</div><h1>New booking</h1></div>
+      <a class="btn btn-ghost btn-sm" href="/admin">← All bookings</a>
+    </div>
+    <form class="card" method="post" action="/admin/bookings">
+      <h3>Excursion</h3>
+      <div class="grid-form" style="margin-top:20px">
+        <div><label>Cruise ship *</label><input name="ship_name" required></div>
+        <div><label>Excursion date *</label><input type="date" name="excursion_date" required></div>
+        <div><label>Guests *</label><select name="guests" required>${guestOptions}</select></div>
+        <div><label>Tour *</label><select name="tour" required>${tourOptions}</select></div>
+      </div>
+
+      <h3 style="margin-top:34px">Customer</h3>
+      <div class="grid-form" style="margin-top:20px">
+        <div><label>Email *</label><input type="email" name="email" required></div>
+        <div><label>Phone *</label><input name="phone" required></div>
+        <div style="grid-column:span 2"><label>Notes</label><input name="notes" placeholder="dietary needs, mobility, interests…"></div>
+      </div>
+
+      <h3 style="margin-top:34px">Payment &amp; notifications</h3>
+      <div class="grid-form" style="margin-top:20px">
+        <div>
+          <label>Payment state</label>
+          <select name="status">
+            <option value="awaiting_deposit">No payment yet</option>
+            <option value="deposit_paid">Deposit (10%) paid</option>
+            <option value="paid_in_full">Paid in full</option>
+          </select>
+        </div>
+        <div style="grid-column:span 3;padding-bottom:9px">
+          <label>Emails</label>
+          <label style="text-transform:none;letter-spacing:0;font-size:14px;font-weight:400;color:#2B3A45">
+            <input type="checkbox" name="notify" value="1" checked style="width:auto;margin-right:8px">
+            Email the customer a summary, notify ${esc(NOTIFY_EMAIL)}, and ask every active guide for availability
+          </label>
+        </div>
+      </div>
+
+      <button class="btn btn-gold" style="margin-top:28px">Create booking</button>
+    </form>`;
+
+  res.send(layout({ title: "New booking — Backoffice", tab: "bookings", body }));
+});
+
+app.post("/admin/bookings", requireAuth, async (req, res) => {
+  const {
+    ship_name,
+    excursion_date,
+    guests,
+    tour,
+    email,
+    phone,
+    notes,
+    status,
+    notify,
+  } = req.body || {};
+
+  const priced = priceBooking(tour, guests);
+  if (!priced || !ship_name || !excursion_date || !email || !phone)
+    return res.redirect("/admin/bookings/new");
+
+  const state = ["awaiting_deposit", "deposit_paid", "paid_in_full"].includes(
+    status,
+  )
+    ? status
+    : "awaiting_deposit";
+
+  const ref = `TPT-${new Date().getFullYear()}-${crypto.randomInt(10000, 99999)}`;
+  const { rows } = await q(
+    `INSERT INTO bookings
+       (ref, ship_name, excursion_date, guests_label, guests_count, tour_key,
+        tour_label, tour_hours, price_pp_cents, total_cents, deposit_cents,
+        currency, customer_email, customer_phone, addons, notes, status, paid_at)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,'[]'::jsonb,$15,$16,$17)
+     RETURNING *`,
+    [
+      ref,
+      String(ship_name).slice(0, 160),
+      excursion_date,
+      priced.range.label,
+      priced.range.count,
+      tour,
+      priced.tour.label,
+      priced.tour.hours,
+      priced.pricePpCents,
+      priced.totalCents,
+      priced.depositCents,
+      CURRENCY,
+      String(email).trim().slice(0, 200),
+      String(phone).trim().slice(0, 60),
+      notes ? String(notes).slice(0, 2000) : "Added by hand in the backoffice",
+      state,
+      state === "awaiting_deposit" ? null : new Date(),
+    ],
+  );
+
+  if (notify) {
+    void dispatchBookingEmails(rows[0]).catch((err) =>
+      console.error("manual dispatch failed:", err),
+    );
+  }
+
+  res.redirect(`/admin/bookings/${rows[0].id}`);
+});
+
 app.get("/admin/bookings/:id", requireAuth, async (req, res) => {
   const id = Number(req.params.id);
   const { rows } = await q(`SELECT * FROM bookings WHERE id=$1`, [id]);
@@ -587,6 +721,7 @@ app.get("/admin/bookings/:id", requireAuth, async (req, res) => {
   );
 
   const addons = Array.isArray(b.addons) ? b.addons : [];
+  const paid = PAID.has(b.status);
 
   const guideRows = requests.rows
     .map(
@@ -611,6 +746,10 @@ app.get("/admin/bookings/:id", requireAuth, async (req, res) => {
       <div><div class="eyebrow">Booking ${esc(b.ref)}</div><h1>${esc(b.tour_label)}</h1></div>
       <a class="btn btn-ghost btn-sm" href="/admin">← All bookings</a>
     </div>
+    ${req.query.ok === "link" ? '<div class="note">Payment link emailed to the customer.</div>' : ""}
+    ${req.query.e === "link" ? '<div class="note note-bad">Could not send the payment link — check the service logs.</div>' : ""}
+    ${req.query.e === "cfg" ? '<div class="note note-bad">Stripe or Resend is not configured, so no link was sent.</div>' : ""}
+    ${req.query.e === "unpaid" ? '<div class="note note-bad">Guides are asked only after the deposit is paid.</div>' : ""}
 
     <div class="grid2">
       <div class="card">
@@ -636,17 +775,45 @@ app.get("/admin/bookings/:id", requireAuth, async (req, res) => {
           <dt>Balance</dt><dd>${money(b.total_cents - b.deposit_cents, b.currency)}</dd>
           <dt>Stripe</dt><dd class="muted"><code>${esc(b.stripe_payment_id || b.stripe_session_id || "—")}</code></dd>
         </dl>
+        ${
+          !paid && b.status !== "cancelled"
+            ? `<form method="post" action="/admin/bookings/${b.id}/payment-link" style="margin-top:24px;padding-top:20px;border-top:1px solid var(--line)">
+                 <button class="btn btn-gold btn-sm">Email the deposit payment link</button>
+                 <div class="muted" style="margin-top:10px">Sends ${esc(b.customer_email)} a Stripe checkout link for ${money(b.deposit_cents, b.currency)}. Valid 24 hours — press again to issue a new one.</div>
+               </form>`
+            : ""
+        }
       </div>
+    </div>
+
+    <div class="card" style="margin-top:26px">
+      <h3>${b.status === "cancelled" ? "This booking is cancelled" : "Cancel this booking"}</h3>
+      ${
+        b.status === "cancelled"
+          ? `<p class="muted" style="margin-top:12px">Cancelled on ${dateShort(b.cancelled_at)}${b.cancel_reason ? ` — ${esc(b.cancel_reason)}` : ""}.</p>
+             ${b.paid_at ? `<div class="note" style="margin-top:18px">A deposit of <strong>${money(b.deposit_cents, b.currency)}</strong> was collected. Refunds are not issued from here — do it in the Stripe dashboard on payment <code>${esc(b.stripe_payment_id || "—")}</code>.</div>` : ""}
+             <form method="post" action="/admin/bookings/${b.id}/reopen" style="margin-top:18px">
+               <button class="btn btn-ghost btn-sm">Reopen booking</button>
+             </form>`
+          : `<p class="muted" style="margin-top:10px">Works at any stage — unpaid, deposit paid or paid in full. The customer is not emailed automatically${b.paid_at ? ", and no money is refunded: issue the refund in Stripe" : ""}.</p>
+             <form method="post" action="/admin/bookings/${b.id}/cancel" style="margin-top:20px"
+                   onsubmit="return confirm('Cancel booking ${esc(b.ref)}?')">
+               <label>Reason (optional)</label>
+               <input name="reason" placeholder="e.g. ship skipped the port, customer changed plans">
+               <button class="btn btn-danger btn-sm" style="margin-top:18px">Cancel booking</button>
+             </form>`
+      }
     </div>
 
     <div class="page-head" style="margin-top:44px">
       <div><div class="eyebrow">Availability</div><h2>Guide answers</h2></div>
       ${
-        b.status === "deposit_paid"
-          ? `<form method="post" action="/admin/bookings/${b.id}/resend"><button class="btn btn-sm">Re-send requests</button></form>`
-          : ""
+        b.status === "cancelled" || !paid
+          ? ""
+          : `<form method="post" action="/admin/bookings/${b.id}/resend"><button class="btn btn-sm">${requests.rows.length ? "Re-send requests" : "Ask the guides now"}</button></form>`
       }
     </div>
+    ${!paid && b.status !== "cancelled" ? '<div class="note">Guides are asked for availability only once the 10% deposit has been paid.</div>' : ""}
     ${
       requests.rows.length
         ? `<table><thead><tr><th>Guide</th><th>Answer</th><th>Email</th><th>Links</th></tr></thead><tbody>${guideRows}</tbody></table>`
@@ -664,12 +831,13 @@ app.get("/admin/bookings/:id", requireAuth, async (req, res) => {
 
 app.post("/admin/bookings/:id/resend", requireAuth, async (req, res) => {
   const id = Number(req.params.id);
-  const { rows } = await q(
-    `SELECT * FROM bookings WHERE id=$1 AND status='deposit_paid'`,
-    [id],
-  );
-  if (!rows.length) return res.redirect(`/admin/bookings/${id}`);
+  const { rows } = await q(`SELECT * FROM bookings WHERE id=$1`, [id]);
+  if (!rows.length) return res.redirect("/admin");
   const booking = rows[0];
+
+  // Availability requests require money in the door.
+  if (!PAID.has(booking.status))
+    return res.redirect(`/admin/bookings/${id}?e=unpaid`);
 
   const guides = await q(`SELECT * FROM guides WHERE active`);
   for (const guide of guides.rows) {
@@ -686,6 +854,87 @@ app.post("/admin/bookings/:id/resend", requireAuth, async (req, res) => {
   res.redirect(`/admin/bookings/${id}`);
 });
 
+/** Email the customer a Stripe Checkout link for the 10% deposit. */
+app.post("/admin/bookings/:id/payment-link", requireAuth, async (req, res) => {
+  const id = Number(req.params.id);
+  const { rows } = await q(`SELECT * FROM bookings WHERE id=$1`, [id]);
+  if (!rows.length) return res.redirect("/admin");
+  const booking = rows[0];
+
+  if (!stripe || !mailConfigured)
+    return res.redirect(`/admin/bookings/${id}?e=cfg`);
+  if (PAID.has(booking.status) || booking.status === "cancelled")
+    return res.redirect(`/admin/bookings/${id}`);
+
+  try {
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      customer_email: booking.customer_email,
+      client_reference_id: booking.ref,
+      metadata: { booking_id: String(booking.id), ref: booking.ref },
+      expires_at: Math.floor(Date.now() / 1000) + 23 * 3600,
+      line_items: [
+        {
+          quantity: 1,
+          price_data: {
+            currency: booking.currency,
+            unit_amount: booking.deposit_cents,
+            product_data: {
+              name: `Deposit 10% — ${booking.tour_label}`,
+              description: `${booking.guests_label} · ${dateShort(booking.excursion_date)} · total ${money(booking.total_cents, booking.currency)}`,
+            },
+          },
+        },
+      ],
+      success_url: `${SITE_URL}/booking/success?ref=${booking.ref}`,
+      cancel_url: `${SITE_URL}/booking/cancelled?ref=${booking.ref}`,
+    });
+
+    await sendMail({
+      to: booking.customer_email,
+      ...depositRequestMail({
+        booking,
+        payUrl: session.url,
+        fmtMoney,
+        fmtDate,
+      }),
+    });
+
+    await q(
+      `UPDATE bookings SET stripe_session_id=$2, customer_mail='deposit link sent' WHERE id=$1`,
+      [booking.id, session.id],
+    );
+    res.redirect(`/admin/bookings/${id}?ok=link`);
+  } catch (err) {
+    console.error("payment link failed:", err.message);
+    res.redirect(`/admin/bookings/${id}?e=link`);
+  }
+});
+
+app.post("/admin/bookings/:id/cancel", requireAuth, async (req, res) => {
+  const id = Number(req.params.id);
+  await q(
+    `UPDATE bookings
+        SET status_before_cancel = CASE WHEN status <> 'cancelled' THEN status ELSE status_before_cancel END,
+            status='cancelled', cancelled_at=now(), cancel_reason=$2
+      WHERE id=$1`,
+    [id, req.body?.reason ? String(req.body.reason).slice(0, 400) : null],
+  );
+  res.redirect(`/admin/bookings/${id}`);
+});
+
+app.post("/admin/bookings/:id/reopen", requireAuth, async (req, res) => {
+  const id = Number(req.params.id);
+  await q(
+    `UPDATE bookings
+        SET status = coalesce(status_before_cancel, 'awaiting_deposit'),
+            cancelled_at=NULL, cancel_reason=NULL, status_before_cancel=NULL
+      WHERE id=$1 AND status='cancelled'`,
+    [id],
+  );
+  res.redirect(`/admin/bookings/${id}`);
+});
+
 /* ───────────────────────  admin: guides  ─────────────────────── */
 
 app.get("/admin/guides", requireAuth, async (req, res) => {
@@ -698,15 +947,32 @@ app.get("/admin/guides", requireAuth, async (req, res) => {
       ORDER BY g.active DESC, g.first_name, g.last_name`,
   );
 
+  const editing = Number(req.query.edit || 0);
+
   const rows = guides.rows
-    .map(
-      (g) => `<tr>
+    .map((g) =>
+      g.id === editing
+        ? `<tr><td colspan="6" style="background:rgba(227,172,75,.07)">
+             <form method="post" action="/admin/guides/${g.id}">
+               <div class="grid-form">
+                 <div><label>First name</label><input name="first_name" value="${esc(g.first_name)}" required></div>
+                 <div><label>Last name</label><input name="last_name" value="${esc(g.last_name)}" required></div>
+                 <div><label>Mobile</label><input name="phone" value="${esc(g.phone)}" required></div>
+                 <div><label>Email</label><input type="email" name="email" value="${esc(g.email)}" required></div>
+               </div>
+               <div style="margin-top:18px;display:flex;gap:10px">
+                 <button class="btn btn-gold btn-sm">Save changes</button>
+                 <a class="btn btn-ghost btn-sm" href="/admin/guides">Cancel</a>
+               </div>
+             </form></td></tr>`
+        : `<tr>
       <td><strong>${esc(g.first_name)} ${esc(g.last_name)}</strong></td>
       <td><a class="link" href="mailto:${esc(g.email)}">${esc(g.email)}</a></td>
       <td>${esc(g.phone)}</td>
       <td>${g.active ? '<span class="tag tag-paid">Active</span>' : '<span class="tag tag-pending">Paused</span>'}</td>
       <td class="num">${g.accepted}</td>
       <td style="white-space:nowrap">
+        <a class="btn btn-ghost btn-sm" href="/admin/guides?edit=${g.id}">Edit</a>
         <form method="post" action="/admin/guides/${g.id}/toggle" style="display:inline">
           <button class="btn btn-ghost btn-sm">${g.active ? "Pause" : "Activate"}</button>
         </form>
@@ -760,6 +1026,29 @@ app.post("/admin/guides", requireAuth, async (req, res) => {
     );
   } catch (err) {
     if (err.code === "23505") return res.redirect("/admin/guides?e=dup");
+    throw err;
+  }
+  res.redirect("/admin/guides");
+});
+
+app.post("/admin/guides/:id", requireAuth, async (req, res) => {
+  const { first_name, last_name, phone, email } = req.body || {};
+  if (!first_name || !last_name || !phone || !email)
+    return res.redirect("/admin/guides");
+  try {
+    await q(
+      `UPDATE guides SET first_name=$2, last_name=$3, phone=$4, email=$5 WHERE id=$1`,
+      [
+        Number(req.params.id),
+        String(first_name).trim().slice(0, 80),
+        String(last_name).trim().slice(0, 80),
+        String(phone).trim().slice(0, 40),
+        String(email).trim().toLowerCase().slice(0, 200),
+      ],
+    );
+  } catch (err) {
+    if (err.code === "23505")
+      return res.redirect(`/admin/guides?edit=${req.params.id}&e=dup`);
     throw err;
   }
   res.redirect("/admin/guides");
