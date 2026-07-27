@@ -61,6 +61,8 @@ Keys live in `.env`: `STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`,
 `STRIPE_WEBHOOK_SECRET` (plus `STRIPE_CURRENCY`, `STRIPE_MODE=test`).
 
 - Only test keys (`sk_test_…` / `pk_test_…`) belong in this file.
+- Write secrets with `./deploy/set-env-secret.sh STRIPE_SECRET_KEY` — it reads
+  the value with hidden input, so it never lands in shell history.
 - `STRIPE_SECRET_KEY` is server-side only — it must never reach the frontend
   bundle. Only the publishable key may be exposed to the browser.
 - Payments need the API server (`artifacts/api-server`) to be wired up first:
