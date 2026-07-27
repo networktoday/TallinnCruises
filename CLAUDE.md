@@ -67,8 +67,21 @@ Run from the repo root (`/docker/projects/TallinnCruises`):
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
 - `pnpm --filter @workspace/api-server run dev` — run API server locally
 
-## Deployment notes
+## Deployment (production)
 
+Live at **https://viabaltica.network.today** (Let's Encrypt via Caddy).
+
+- Reverse proxy: Caddy (`/docker/infrastructure/traefik/Caddyfile`, entry
+  `viabaltica.network.today → viabaltica-app:5000`, docker network `proxy`).
+- Stack (this repo's `docker-compose.yml`, compose project `viabaltica`):
+  - `viabaltica-app` — nginx:alpine serving the pre-built site on port 5000
+    (`Dockerfile` + `deploy/nginx.conf`)
+  - `viabaltica-db` — postgres:17-alpine on the `internal` network, volume
+    `viabaltica-db-data` (for the future api-server; the static site does not
+    use it)
+- Deploy/update: `deploy/deploy.sh` (host Vite build + `docker compose up -d --build`).
+- Compose reads `POSTGRES_USER/POSTGRES_PASSWORD/POSTGRES_DB` from `.env` —
+  never run `docker compose up` on the `db` service before those are set.
+- `/docker/projects/viabaltica` is the original deployment scaffold, now
+  superseded by this repo (see its README).
 - The old Replit deployment (`.replit` → autoscale) no longer applies.
-- On this server the intended path is a production Vite build served behind
-  Traefik (Docker), consistent with the other projects under `/docker/projects`.
