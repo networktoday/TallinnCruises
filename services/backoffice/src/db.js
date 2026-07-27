@@ -82,6 +82,9 @@ export async function migrate() {
     `ALTER TABLE bookings ADD COLUMN IF NOT EXISTS internal_mail text NOT NULL DEFAULT 'pending';`,
   );
 
+  // Requested start time, "HH:MM" between 08:00 and 16:00.
+  await q(`ALTER TABLE bookings ADD COLUMN IF NOT EXISTS start_time text;`);
+
   // Cancellation is a bookkeeping state: refunds stay a manual Stripe action.
   await q(
     `ALTER TABLE bookings ADD COLUMN IF NOT EXISTS cancelled_at timestamptz;`,

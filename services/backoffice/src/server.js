@@ -3,7 +3,14 @@ import express from "express";
 import Stripe from "stripe";
 
 import { migrate, q } from "./db.js";
-import { GUEST_RANGES, TOURS, priceBooking, DEPOSIT_RATE } from "./tours.js";
+import {
+  DEPOSIT_RATE,
+  GUEST_RANGES,
+  START_TIMES,
+  TOURS,
+  isValidStartTime,
+  priceBooking,
+} from "./tours.js";
 import {
   customerSummaryMail,
   depositRequestMail,
@@ -130,6 +137,7 @@ app.post("/api/bookings", async (req, res) => {
     const {
       ship_name,
       excursion_date,
+      start_time,
       guests,
       tour,
       email,
@@ -145,21 +153,26 @@ app.post("/api/bookings", async (req, res) => {
       return res.status(400).json({ error: "Missing required fields" });
     if (!/^\d{4}-\d{2}-\d{2}$/.test(excursion_date))
       return res.status(400).json({ error: "Invalid date" });
+    if (!isValidStartTime(start_time))
+      return res
+        .status(400)
+        .json({ error: "Start time must be between 08:00 and 17:00" });
 
     const ref = `TPT-${new Date().getFullYear()}-${crypto.randomInt(10000, 99999)}`;
     const addonList = Array.isArray(addons) ? addons.slice(0, 10) : [];
 
     const { rows } = await q(
       `INSERT INTO bookings
-         (ref, ship_name, excursion_date, guests_label, guests_count, tour_key,
-          tour_label, tour_hours, price_pp_cents, total_cents, deposit_cents,
-          currency, customer_email, customer_phone, addons, notes)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
+         (ref, ship_name, excursion_date, start_time, guests_label, guests_count,
+          tour_key, tour_label, tour_hours, price_pp_cents, total_cents,
+          deposit_cents, currency, customer_email, customer_phone, addons, notes)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
        RETURNING *`,
       [
         ref,
         String(ship_name).slice(0, 160),
         excursion_date,
+        start_time,
         priced.range.label,
         priced.range.count,
         tour,
@@ -352,6 +365,7 @@ async function deliverGuideRequest(booking, guide, request) {
     tourLabel: booking.tour_label,
     itinerary: tour.itinerary || [],
     guestsLabel: booking.guests_label,
+    startTime: booking.start_time,
   });
 
   if (!mailConfigured) {
@@ -540,7 +554,7 @@ app.get("/admin", requireAuth, async (req, res) => {
       (b) => `<tr>
       <td><a class="link" href="/admin/bookings/${b.id}">${esc(b.ref)}</a>
           <div class="muted">${dateShort(b.created_at)}</div></td>
-      <td>${dateShort(b.excursion_date)}<div class="muted">${b.tour_hours}h</div></td>
+      <td>${dateShort(b.excursion_date)}<div class="muted">${esc(b.start_time || "—")} · ${b.tour_hours}h</div></td>
       <td>${esc(b.tour_label)}<div class="muted">${esc(b.guests_label)} · ${esc(b.ship_name)}</div></td>
       <td><a class="link" href="mailto:${esc(b.customer_email)}">${esc(b.customer_email)}</a>
           <div class="muted">${esc(b.customer_phone)}</div></td>
@@ -597,6 +611,9 @@ app.get("/admin/bookings/new", requireAuth, (req, res) => {
   const guestOptions = Object.entries(GUEST_RANGES)
     .map(([key, r]) => `<option value="${key}">${esc(r.label)}</option>`)
     .join("");
+  const timeOptions = START_TIMES.map(
+    (t) => `<option value="${t}"${t === "09:00" ? " selected" : ""}>${t}</option>`,
+  ).join("");
 
   const body = `
     <div class="page-head">
@@ -608,8 +625,9 @@ app.get("/admin/bookings/new", requireAuth, (req, res) => {
       <div class="grid-form" style="margin-top:20px">
         <div><label>Cruise ship *</label><input name="ship_name" required></div>
         <div><label>Excursion date *</label><input type="date" name="excursion_date" required></div>
+        <div><label>Start time *</label><select name="start_time" required>${timeOptions}</select></div>
         <div><label>Guests *</label><select name="guests" required>${guestOptions}</select></div>
-        <div><label>Tour *</label><select name="tour" required>${tourOptions}</select></div>
+        <div style="grid-column:span 2"><label>Tour *</label><select name="tour" required>${tourOptions}</select></div>
       </div>
 
       <h3 style="margin-top:34px">Customer</h3>
@@ -648,6 +666,7 @@ app.post("/admin/bookings", requireAuth, async (req, res) => {
   const {
     ship_name,
     excursion_date,
+    start_time,
     guests,
     tour,
     email,
@@ -658,7 +677,14 @@ app.post("/admin/bookings", requireAuth, async (req, res) => {
   } = req.body || {};
 
   const priced = priceBooking(tour, guests);
-  if (!priced || !ship_name || !excursion_date || !email || !phone)
+  if (
+    !priced ||
+    !ship_name ||
+    !excursion_date ||
+    !isValidStartTime(start_time) ||
+    !email ||
+    !phone
+  )
     return res.redirect("/admin/bookings/new");
 
   const state = ["awaiting_deposit", "deposit_paid", "paid_in_full"].includes(
@@ -670,15 +696,17 @@ app.post("/admin/bookings", requireAuth, async (req, res) => {
   const ref = `TPT-${new Date().getFullYear()}-${crypto.randomInt(10000, 99999)}`;
   const { rows } = await q(
     `INSERT INTO bookings
-       (ref, ship_name, excursion_date, guests_label, guests_count, tour_key,
-        tour_label, tour_hours, price_pp_cents, total_cents, deposit_cents,
-        currency, customer_email, customer_phone, addons, notes, status, paid_at)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,'[]'::jsonb,$15,$16,$17)
+       (ref, ship_name, excursion_date, start_time, guests_label, guests_count,
+        tour_key, tour_label, tour_hours, price_pp_cents, total_cents,
+        deposit_cents, currency, customer_email, customer_phone, addons, notes,
+        status, paid_at)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,'[]'::jsonb,$16,$17,$18)
      RETURNING *`,
     [
       ref,
       String(ship_name).slice(0, 160),
       excursion_date,
+      start_time,
       priced.range.label,
       priced.range.count,
       tour,
@@ -747,6 +775,7 @@ app.get("/admin/bookings/:id", requireAuth, async (req, res) => {
       <a class="btn btn-ghost btn-sm" href="/admin">← All bookings</a>
     </div>
     ${req.query.ok === "link" ? '<div class="note">Payment link emailed to the customer.</div>' : ""}
+    ${req.query.ok === "notes" ? '<div class="note">Notes saved.</div>' : ""}
     ${req.query.e === "link" ? '<div class="note note-bad">Could not send the payment link — check the service logs.</div>' : ""}
     ${req.query.e === "cfg" ? '<div class="note note-bad">Stripe or Resend is not configured, so no link was sent.</div>' : ""}
     ${req.query.e === "unpaid" ? '<div class="note note-bad">Guides are asked only after the deposit is paid.</div>' : ""}
@@ -756,12 +785,18 @@ app.get("/admin/bookings/:id", requireAuth, async (req, res) => {
         <h3>Excursion</h3>
         <dl class="kv" style="margin-top:18px">
           <dt>Date</dt><dd>${dateLabel(b.excursion_date)}</dd>
+          <dt>Start time</dt><dd>${esc(b.start_time || "—")}</dd>
           <dt>Duration</dt><dd>${b.tour_hours} hours</dd>
           <dt>Guests</dt><dd>${esc(b.guests_label)} <span class="muted">(priced for ${b.guests_count})</span></dd>
           <dt>Ship</dt><dd>${esc(b.ship_name)}</dd>
           <dt>Add-ons</dt><dd>${addons.length ? addons.map((a) => esc(a)).join("<br>") : '<span class="muted">none</span>'}</dd>
-          <dt>Notes</dt><dd>${b.notes ? esc(b.notes) : '<span class="muted">none</span>'}</dd>
         </dl>
+        <form method="post" action="/admin/bookings/${b.id}/notes"
+              style="margin-top:22px;padding-top:18px;border-top:1px solid var(--line)">
+          <label>Notes</label>
+          <textarea name="notes" rows="3" placeholder="dietary needs, mobility, meeting point, anything the guide should know">${esc(b.notes || "")}</textarea>
+          <button class="btn btn-ghost btn-sm" style="margin-top:14px">Save notes</button>
+        </form>
       </div>
       <div class="card">
         <h3>Customer &amp; payment</h3>
@@ -909,6 +944,13 @@ app.post("/admin/bookings/:id/payment-link", requireAuth, async (req, res) => {
     console.error("payment link failed:", err.message);
     res.redirect(`/admin/bookings/${id}?e=link`);
   }
+});
+
+app.post("/admin/bookings/:id/notes", requireAuth, async (req, res) => {
+  const id = Number(req.params.id);
+  const notes = req.body?.notes ? String(req.body.notes).slice(0, 2000) : null;
+  await q(`UPDATE bookings SET notes=$2 WHERE id=$1`, [id, notes]);
+  res.redirect(`/admin/bookings/${id}?ok=notes`);
 });
 
 app.post("/admin/bookings/:id/cancel", requireAuth, async (req, res) => {

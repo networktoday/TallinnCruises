@@ -62,6 +62,14 @@ export const GUEST_RANGES = {
 
 export const DEPOSIT_RATE = 0.1;
 
+/** Selectable start times: 08:00 → 17:00, on the hour and the half hour. */
+export const START_TIMES = Array.from({ length: 19 }, (_, i) => {
+  const minutes = 8 * 60 + i * 30;
+  return `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${minutes % 60 === 0 ? "00" : "30"}`;
+});
+
+export const isValidStartTime = (value) => START_TIMES.includes(value);
+
 export function priceBooking(tourKey, guestsKey) {
   const tour = TOURS[tourKey];
   const range = GUEST_RANGES[guestsKey];

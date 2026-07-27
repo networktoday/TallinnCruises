@@ -45,10 +45,11 @@ export function guideRequestMail({
   tourLabel,
   itinerary = [],
   guestsLabel,
+  startTime,
 }) {
   const text = [
     `Gentile ${guide.first_name},`,
-    `sei disponibile per fare una guida di ${hours} ore per il giorno ${dateLabel} ?`,
+    `sei disponibile per fare una guida di ${hours} ore per il giorno ${dateLabel} con inizio alle ${startTime || "orario da confermare"} ?`,
     "",
     "Rispondere: SI oppure NO",
     "",
@@ -56,6 +57,7 @@ export function guideRequestMail({
     `NO  -> ${noUrl}`,
     "",
     "— Dettagli dell'escursione —",
+    `Orario di inizio: ${startTime || "da confermare"}`,
     `Pacchetto scelto: ${packageName || tourLabel}`,
     `Tour: ${tourLabel}`,
     guestsLabel ? `Partecipanti: ${guestsLabel}` : null,
@@ -69,7 +71,7 @@ export function guideRequestMail({
   const html = `<!doctype html>
 <div style="font-family:Arial,Helvetica,sans-serif;font-size:15px;color:#1b2b38;line-height:1.6;max-width:620px">
   <p>Gentile ${escapeHtml(guide.first_name)},</p>
-  <p>sei disponibile per fare una guida di <strong>${hours} ore</strong> per il giorno <strong>${escapeHtml(dateLabel)}</strong> ?</p>
+  <p>sei disponibile per fare una guida di <strong>${hours} ore</strong> per il giorno <strong>${escapeHtml(dateLabel)}</strong> con inizio alle <strong>${escapeHtml(startTime || "orario da confermare")}</strong> ?</p>
   <p>Rispondere: SI oppure NO</p>
   <p style="margin:26px 0">
     <a href="${yesUrl}" style="background:#0d7a4f;color:#fff;text-decoration:none;padding:13px 34px;font-weight:bold;display:inline-block">SI</a>
@@ -82,6 +84,7 @@ export function guideRequestMail({
       <tr><td style="padding:5px 18px 5px 0;color:#6b7885;font-size:13px">Pacchetto scelto</td><td style="padding:5px 0"><strong>${escapeHtml(packageName || tourLabel)}</strong></td></tr>
       <tr><td style="padding:5px 18px 5px 0;color:#6b7885;font-size:13px">Tour</td><td style="padding:5px 0">${escapeHtml(tourLabel)}</td></tr>
       ${guestsLabel ? `<tr><td style="padding:5px 18px 5px 0;color:#6b7885;font-size:13px">Partecipanti</td><td style="padding:5px 0">${escapeHtml(guestsLabel)}</td></tr>` : ""}
+      <tr><td style="padding:5px 18px 5px 0;color:#6b7885;font-size:13px">Orario di inizio</td><td style="padding:5px 0"><strong>${startTime || "da confermare"}</strong></td></tr>
       <tr><td style="padding:5px 18px 5px 0;color:#6b7885;font-size:13px">Durata</td><td style="padding:5px 0">${hours} ore</td></tr>
     </table>
 
@@ -122,6 +125,7 @@ export function customerSummaryMail({ booking, fmtMoney, fmtDate }) {
     ["Reference", booking.ref],
     ["Tour", booking.tour_label],
     ["Date", fmtDate(booking.excursion_date)],
+    ["Start time", booking.start_time || "to confirm"],
     ["Duration", `${booking.tour_hours} hours`],
     ["Guests", booking.guests_label],
     ["Cruise ship", booking.ship_name],
@@ -155,6 +159,7 @@ export function depositRequestMail({ booking, payUrl, fmtMoney, fmtDate }) {
     ["Reference", booking.ref],
     ["Tour", booking.tour_label],
     ["Date", fmtDate(booking.excursion_date)],
+    ["Start time", booking.start_time || "to confirm"],
     ["Guests", booking.guests_label],
     ["Total", fmtMoney(booking.total_cents, booking.currency)],
     ["Deposit to pay now (10%)", fmtMoney(booking.deposit_cents, booking.currency)],
@@ -191,6 +196,7 @@ export function internalNotificationMail({ booking, fmtMoney, fmtDate, adminUrl 
     ["Reference", booking.ref],
     ["Tour", booking.tour_label],
     ["Date", fmtDate(booking.excursion_date)],
+    ["Start time", booking.start_time || "to confirm"],
     ["Duration", `${booking.tour_hours} hours`],
     ["Guests", `${booking.guests_label} (priced for ${booking.guests_count})`],
     ["Cruise ship", booking.ship_name],
