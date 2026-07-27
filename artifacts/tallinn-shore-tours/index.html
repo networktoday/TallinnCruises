@@ -67,6 +67,7 @@
     }
 
     img { max-width: 100%; display: block; }
+    picture { display: block; }
     a   { color: inherit; text-decoration: none; }
     button, input, select, textarea { font: inherit; color: inherit; }
 
@@ -320,7 +321,7 @@
     .hero-bg {
       position: absolute;
       inset: 0;
-      background-image: url('/tour-explorer.png');
+      background-image: url('/tour-explorer.jpg');
       background-size: cover;
       background-position: center 32%;
       opacity: 0.16;
@@ -435,12 +436,10 @@
     }
     .hero-photo img {
       width: 100%;
+      height: auto;
       aspect-ratio: 4 / 3.35;
       object-fit: cover;
-      filter: grayscale(0.9) contrast(1.06) brightness(0.96);
-      transition: filter .8s ease;
     }
-    .hero-photo:hover img { filter: grayscale(0.15) contrast(1.03); }
 
     .hero-quote {
       position: absolute;
@@ -685,12 +684,12 @@
     }
     .tour-figure img {
       width: 100%;
+      height: auto;
       aspect-ratio: 16 / 10;
       object-fit: cover;
-      filter: grayscale(0.72) contrast(1.05);
-      transition: transform .8s ease, filter .8s ease;
+      transition: transform .8s ease;
     }
-    .tour:hover .tour-figure img { transform: scale(1.035); filter: grayscale(0) contrast(1.02); }
+    .tour:hover .tour-figure img { transform: scale(1.035); }
 
     .tour-time {
       position: absolute;
@@ -1529,7 +1528,10 @@
 
         <div class="hero-media">
           <figure class="hero-photo">
-            <img src="/tour-medieval.png" alt="Tallinn's medieval town walls and towers at golden hour">
+            <picture>
+              <source type="image/webp" srcset="/tour-medieval.webp">
+              <img src="/tour-medieval.jpg" width="1280" height="896" fetchpriority="high" decoding="async" alt="Tallinn's medieval town walls and towers at golden hour">
+            </picture>
           </figure>
           <blockquote class="hero-quote">
             <p>"Best shore excursion we've ever done in 12 years of cruising."</p>
@@ -1679,7 +1681,10 @@
         <!-- CLASSIC -->
         <article class="tour reveal">
           <div class="tour-figure">
-            <img src="/tour-medieval.png" alt="Medieval town walls and cobbled street in Tallinn Old Town">
+            <picture>
+              <source type="image/webp" srcset="/tour-medieval.webp">
+              <img src="/tour-medieval.jpg" width="1280" height="896" loading="lazy" decoding="async" alt="Medieval town walls and cobbled street in Tallinn Old Town">
+            </picture>
             <span class="tour-time">3 hours</span>
           </div>
           <div class="tour-body">
@@ -1707,7 +1712,10 @@
         <article class="tour is-featured reveal reveal-delay-1">
           <span class="tour-flag">Most popular</span>
           <div class="tour-figure">
-            <img src="/tour-explorer.png" alt="Aerial view of Tallinn Old Town, Kadriorg gardens and the Baltic Sea">
+            <picture>
+              <source type="image/webp" srcset="/tour-explorer.webp">
+              <img src="/tour-explorer.jpg" width="1280" height="896" loading="lazy" decoding="async" alt="Aerial view of Tallinn Old Town, Kadriorg gardens and the Baltic Sea">
+            </picture>
             <span class="tour-time">6 hours</span>
           </div>
           <div class="tour-body">
@@ -1735,7 +1743,10 @@
         <!-- MOST COMPLETE -->
         <article class="tour reveal reveal-delay-1">
           <div class="tour-figure">
-            <img src="/tour-custom.png" alt="Kadriorg palace gardens and the Baltic coastline near Tallinn">
+            <picture>
+              <source type="image/webp" srcset="/tour-custom.webp">
+              <img src="/tour-custom.jpg" width="1280" height="896" loading="lazy" decoding="async" alt="Kadriorg palace gardens and the Baltic coastline near Tallinn">
+            </picture>
             <span class="tour-time">8 hours</span>
           </div>
           <div class="tour-body">
@@ -1762,7 +1773,10 @@
         <!-- DIFFERENTIATION -->
         <article class="tour reveal reveal-delay-2">
           <div class="tour-figure">
-            <img src="/tour-stories.png" alt="Creative quarter street life in Tallinn's Kalamaja district">
+            <picture>
+              <source type="image/webp" srcset="/tour-stories.webp">
+              <img src="/tour-stories.jpg" width="1280" height="896" loading="lazy" decoding="async" alt="Creative quarter street life in Tallinn's Kalamaja district">
+            </picture>
             <span class="tour-time">4 hours</span>
           </div>
           <div class="tour-body">
@@ -2291,7 +2305,7 @@
       <div class="tour-modal-grid">
 
         <div class="tour-modal-card" data-tour-value="Classic Essential" data-tour-label="Old Town Walking Tour — Classic Essential (3h)">
-          <div class="tour-modal-card-img" style="background-image: url('/tour-medieval.png');"></div>
+          <div class="tour-modal-card-img" style="background-image: url('/tour-medieval.jpg');"></div>
           <div class="tour-modal-card-body">
             <div class="tour-modal-card-title">Tallinn Old Town Private Walking Tour</div>
             <p class="tour-modal-card-desc">The essential Tallinn on foot — cobblestones, medieval walls, and centuries of history with your own expert local guide.</p>
@@ -2304,7 +2318,7 @@
         </div>
 
         <div class="tour-modal-card" data-tour-value="Signature Tour" data-tour-label="Best of Tallinn Shore Excursion — Signature Tour (6h)">
-          <div class="tour-modal-card-img" style="background-image: url('/tour-explorer.png');"></div>
+          <div class="tour-modal-card-img" style="background-image: url('/tour-explorer.jpg');"></div>
           <div class="tour-modal-card-body">
             <div class="tour-modal-card-title">Best of Tallinn Private Shore Excursion</div>
             <p class="tour-modal-card-desc">Old Town, Kadriorg Palace, Baltic coast, and a local restaurant lunch — the most popular full-day Tallinn experience.</p>
@@ -2317,7 +2331,7 @@
         </div>
 
         <div class="tour-modal-card" data-tour-value="Most Complete" data-tour-label="Old Town, Kadriorg &amp; Pirita — Most Complete (8h)">
-          <div class="tour-modal-card-img" style="background-image: url('/tour-custom.png');"></div>
+          <div class="tour-modal-card-img" style="background-image: url('/tour-custom.jpg');"></div>
           <div class="tour-modal-card-body">
             <div class="tour-modal-card-title">Tallinn Old Town, Kadriorg &amp; Pirita Tour</div>
             <p class="tour-modal-card-desc">Every highlight, no rushing. A full day covering medieval Old Town, Baroque gardens, and the Baltic coastline.</p>
@@ -2330,7 +2344,7 @@
         </div>
 
         <div class="tour-modal-card" data-tour-value="Most Original" data-tour-label="Hidden Stories &amp; Local Life — Most Original (4h)">
-          <div class="tour-modal-card-img" style="background-image: url('/tour-stories.png');"></div>
+          <div class="tour-modal-card-img" style="background-image: url('/tour-stories.jpg');"></div>
           <div class="tour-modal-card-body">
             <div class="tour-modal-card-title">Tallinn Hidden Stories &amp; Local Life Tour</div>
             <p class="tour-modal-card-desc">Skip the postcard version. Explore creative neighborhoods, street art, local cafés, and stories no bus tour tells.</p>
