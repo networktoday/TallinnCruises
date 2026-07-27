@@ -46,7 +46,7 @@
       --shadow:    0 14px 34px -16px rgba(12,32,50,0.30);
       --shadow-lg: 0 34px 70px -28px rgba(12,32,50,0.45);
 
-      --nav-h: 78px;
+      --nav-h: 86px;
       --pad:   clamp(20px, 4vw, 56px);
     }
 
@@ -224,24 +224,39 @@
       gap: 28px;
     }
 
+    /* Logo lockup: circular mark + two-line wordmark, hairline divider */
     .nav-logo {
-      font-family: var(--serif);
-      font-size: clamp(18px, 1.5vw, 21px);
-      font-weight: 700;
-      color: var(--ink);
-      letter-spacing: 0.06em;
-      line-height: 1.1;
+      display: flex;
+      align-items: center;
+      gap: clamp(10px, 1.1vw, 15px);
+      padding-right: clamp(16px, 2vw, 30px);
+      border-right: 1px solid var(--line);
       white-space: nowrap;
     }
-    .nav-logo-sub {
+    .nav-mark {
+      height: clamp(40px, 4vw, 56px);
+      width: auto;
+      flex-shrink: 0;
+    }
+    .nav-wordmark-main {
       display: block;
       font-family: var(--sans);
-      font-size: 9.5px;
-      font-weight: 600;
-      letter-spacing: 0.24em;
+      font-size: clamp(19px, 1.8vw, 26px);
+      font-weight: 700;
+      letter-spacing: 0.05em;
       text-transform: uppercase;
-      color: var(--gold-deep);
-      margin-top: 3px;
+      color: var(--ink);
+      line-height: 1;
+    }
+    .nav-wordmark-sub {
+      display: block;
+      font-family: var(--sans);
+      font-size: clamp(9.5px, 0.85vw, 12px);
+      font-weight: 500;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #3C5C76;
+      margin-top: 6px;
     }
 
     .nav-links {
@@ -1412,6 +1427,7 @@
 
     @media (max-width: 860px) {
       .nav-links { display: none; }
+      .nav-logo { border-right: none; padding-right: 0; }
       .nav-cta { display: none; }
       .hamburger { display: flex; }
       .tours-grid { grid-template-columns: 1fr; }
@@ -1447,8 +1463,11 @@
     <div class="container">
       <div class="nav-inner">
         <a href="#" class="nav-logo">
-          Tallinn Shore Tours
-          <span class="nav-logo-sub">Private Cruise Excursions</span>
+          <img class="nav-mark" src="/logo.png" alt="" width="512" height="512" onerror="this.remove()">
+          <span class="nav-wordmark">
+            <span class="nav-wordmark-main">Tallinn</span>
+            <span class="nav-wordmark-sub">Private Tours</span>
+          </span>
         </a>
         <ul class="nav-links">
           <li><a href="#tours">Our Tours</a></li>
