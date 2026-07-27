@@ -547,50 +547,45 @@
     .why-copy h2 { margin-bottom: 22px; }
     .why-copy p { color: var(--muted); margin-bottom: 32px; max-width: 44ch; }
 
-    .compare { border-top: 1px solid var(--ink); }
-    .compare-head {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: clamp(16px, 2vw, 30px);
-      padding: 16px 0 14px;
-      border-bottom: 1px solid var(--line);
-    }
-    .compare-head div {
-      font-size: 10.5px;
-      font-weight: 700;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-    }
-    .compare-head .col-bad  { color: var(--muted); }
-    .compare-head .col-good { color: var(--gold-deep); }
+    /* Two tinted columns: what the ship sells vs. what we run */
+    .why-copy h2 em { color: var(--gold-line); }
+    .why-copy .btn { border-radius: 999px; padding: 17px 34px; }
 
-    .compare-row {
+    .compare {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: clamp(16px, 2vw, 30px);
-      padding: 15px 0;
-      border-bottom: 1px solid var(--line-soft);
+      column-gap: 14px;
+      row-gap: 5px;
+      align-items: stretch;
+    }
+    .compare-h {
+      padding: 16px 18px;
+      text-align: center;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      border-radius: 10px;
+      margin-bottom: 4px;
+    }
+    .compare-h.bad  { background: #E8394F; }
+    .compare-h.good { background: #10996B; }
+
+    .compare .cell {
+      padding: 16px 20px;
       font-size: 15px;
+      line-height: 1.5;
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
-    .compare-row .cell-bad {
-      color: var(--muted);
-      text-decoration: line-through;
-      text-decoration-color: rgba(12,32,50,0.22);
-      text-decoration-thickness: 1px;
-    }
-    .compare-row .cell-good {
-      color: var(--ink);
-      font-weight: 500;
-      position: relative;
-      padding-left: 20px;
-    }
-    .compare-row .cell-good::before {
-      content: '';
-      position: absolute;
-      left: 0; top: 11px;
-      width: 10px; height: 1px;
-      background: var(--gold-line);
-    }
+    .compare .cell-bad  { background: #FCEFF1; color: #4A3338; }
+    .compare .cell-good { background: #E9F6F0; color: #0B6146; font-weight: 500; }
+    .compare .cell-bad:first-of-type  { border-radius: 10px 10px 0 0; }
+    .compare .cell:nth-last-child(2)  { border-radius: 0 0 10px 10px; }
+    .compare .cell:last-child         { border-radius: 0 0 10px 10px; }
+    .compare .cell-icon { font-size: 17px; line-height: 1; flex-shrink: 0; }
 
     /* ═══════════════════════════════════════
        TOURS
@@ -1258,8 +1253,9 @@
       body { font-size: 16px; }
       .pillars, .steps, .benefits { grid-template-columns: 1fr; }
       .benefit { border-left: none; }
-      .compare-head, .compare-row { grid-template-columns: 1fr; gap: 6px; }
-      .compare-row { padding: 14px 0; }
+      .compare { column-gap: 8px; }
+      .compare-h { font-size: 10.5px; letter-spacing: .08em; padding: 13px 10px; }
+      .compare .cell { padding: 13px 12px; font-size: 13.5px; }
       .hero-quote { position: static; width: 100%; margin-top: 20px; }
       .hero-photo { transform: none; }
       .hero-media { padding-bottom: 0; }
@@ -1411,38 +1407,30 @@
           <span class="eyebrow">Why go private?</span>
           <h2>Cruise line tours are fine. Ours are <em>yours.</em></h2>
           <p>The cruise ship will sell you a seat on a 50-person bus with a fixed schedule and a rushed lunch stop. With over 20 years of experience, we give you Tallinn the way it deserves to be seen — at your pace, with people you actually like.</p>
-          <a href="#tours" class="btn btn-ghost">See Our Tours →</a>
+          <a href="#tours" class="btn btn-primary">See Our Tours →</a>
         </div>
         <div class="reveal reveal-delay-2">
           <div class="compare">
-            <div class="compare-head">
-              <div class="col-bad">Cruise line tour</div>
-              <div class="col-good">Tallinn Shore Tours</div>
-            </div>
-            <div class="compare-row">
-              <div class="cell-bad">40–50 strangers on a bus</div>
-              <div class="cell-good">Your group only — 2 to 15 people</div>
-            </div>
-            <div class="compare-row">
-              <div class="cell-bad">Fixed schedule, no flexibility</div>
-              <div class="cell-good">Stop longer at what you love</div>
-            </div>
-            <div class="compare-row">
-              <div class="cell-bad">Up to 2× the price per person</div>
-              <div class="cell-good">Better value, transparent pricing</div>
-            </div>
-            <div class="compare-row">
-              <div class="cell-bad">Same route for every ship</div>
-              <div class="cell-good">Customized to your interests</div>
-            </div>
-            <div class="compare-row">
-              <div class="cell-bad">One guide for 50 people</div>
-              <div class="cell-good">Your own personal local guide</div>
-            </div>
-            <div class="compare-row">
-              <div class="cell-bad">No guarantee if you're late</div>
-              <div class="cell-good">We track your ship — always</div>
-            </div>
+            <div class="compare-h bad">Cruise line tour</div>
+            <div class="compare-h good">Tallinn Shore Tours</div>
+
+            <div class="cell cell-bad"><span class="cell-icon" aria-hidden="true">🚌</span>40–50 strangers on a bus</div>
+            <div class="cell cell-good">Your group only — 2 to 15 people</div>
+
+            <div class="cell cell-bad"><span class="cell-icon" aria-hidden="true">⏰</span>Fixed schedule, no flexibility</div>
+            <div class="cell cell-good">Stop longer at what you love</div>
+
+            <div class="cell cell-bad"><span class="cell-icon" aria-hidden="true">💸</span>Up to 2× the price per person</div>
+            <div class="cell cell-good">Better value, transparent pricing</div>
+
+            <div class="cell cell-bad"><span class="cell-icon" aria-hidden="true">📋</span>Same route for every ship</div>
+            <div class="cell cell-good">Customized to your interests</div>
+
+            <div class="cell cell-bad"><span class="cell-icon" aria-hidden="true">🎤</span>One guide for 50 people</div>
+            <div class="cell cell-good">Your own personal local guide</div>
+
+            <div class="cell cell-bad"><span class="cell-icon" aria-hidden="true">🚫</span>No guarantee if you're late</div>
+            <div class="cell cell-good">We track your ship — always</div>
           </div>
         </div>
       </div>
