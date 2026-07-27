@@ -485,36 +485,55 @@
       color: var(--muted);
     }
 
-  (dark band, hairline columns)
+    /* ═══════════════════════════════════════
+       PILLARS  (dark band, centred icon columns)
     ═══════════════════════════════════════ */
+    #trust-strip {
+      background: linear-gradient(180deg, #0B1D2E 0%, #143B52 100%);
+    }
     .pillars {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
+      gap: clamp(26px, 3vw, 46px);
+      text-align: center;
     }
     .pillar {
-      padding: 6px clamp(18px, 2vw, 30px);
-      border-left: 1px solid var(--ink-line);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
-    .pillar:first-child { border-left: none; padding-left: 0; }
-    .pillar:last-child { padding-right: 0; }
-    .pillar-idx {
-      font-family: var(--serif);
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--gold);
-      letter-spacing: 0.1em;
-      display: block;
-      margin-bottom: 18px;
+    .pillar-icon {
+      width: 78px;
+      height: 78px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+      line-height: 1;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(227,172,75,0.45);
+      margin-bottom: 26px;
+      transition: background .3s ease, border-color .3s ease;
+    }
+    .pillar:hover .pillar-icon {
+      background: rgba(227,172,75,0.14);
+      border-color: var(--gold);
     }
     .pillar-title {
       font-family: var(--serif);
       font-size: clamp(19px, 1.5vw, 23px);
       font-weight: 600;
       color: #fff;
-      line-height: 1.22;
-      margin-bottom: 12px;
+      line-height: 1.24;
+      margin-bottom: 14px;
     }
-    .pillar p { font-size: 15px; color: rgba(255,255,255,0.62); }
+    .pillar p {
+      font-size: 15px;
+      color: rgba(255,255,255,0.62);
+      max-width: 32ch;
+      margin: 0 auto;
+    }
 
     /* ═══════════════════════════════════════
        WHY PRIVATE  +  COMPARISON
@@ -1216,8 +1235,7 @@
     @media (max-width: 1080px) {
       .hero-inner { grid-template-columns: 1fr; gap: 52px; }
       .hero-media { max-width: 560px; }
-      .pillars { grid-template-columns: 1fr 1fr; gap: 30px 0; }
-      .pillar:nth-child(3) { border-left: none; padding-left: 0; }
+      .pillars { grid-template-columns: 1fr 1fr; }
       .why-grid, .booking-grid, .contact-grid { grid-template-columns: 1fr; }
       .steps { grid-template-columns: 1fr 1fr; }
       .benefits { grid-template-columns: 1fr 1fr; }
@@ -1239,8 +1257,6 @@
     @media (max-width: 560px) {
       body { font-size: 16px; }
       .pillars, .steps, .benefits { grid-template-columns: 1fr; }
-      .pillar { border-left: none; padding-left: 0; padding-right: 0; }
-      .pillar:not(:first-child) { border-top: 1px solid var(--ink-line); padding-top: 26px; }
       .benefit { border-left: none; }
       .compare-head, .compare-row { grid-template-columns: 1fr; gap: 6px; }
       .compare-row { padding: 14px 0; }
@@ -1374,22 +1390,22 @@
       </div>
       <div class="pillars">
         <div class="pillar reveal">
-          <span class="pillar-idx">i</span>
+          <span class="pillar-icon" aria-hidden="true">🚢</span>
           <div class="pillar-title">Designed for Cruise Passengers</div>
           <p>We specialize exclusively in cruise ship guests arriving at Tallinn port. Every detail — timing, logistics, pace — is built around your ship schedule.</p>
         </div>
         <div class="pillar reveal reveal-delay-1">
-          <span class="pillar-idx">ii</span>
+          <span class="pillar-icon" aria-hidden="true">👫</span>
           <div class="pillar-title">Private by Design</div>
           <p>Your group only, always. No strangers, no waiting, no compromise. Just you and your personal Tallinn guide.</p>
         </div>
         <div class="pillar reveal reveal-delay-2">
-          <span class="pillar-idx">iii</span>
+          <span class="pillar-icon" aria-hidden="true">🏆</span>
           <div class="pillar-title">22+ Years of Local Expertise</div>
           <p>Not a marketplace, not a generalist operator. A Tallinn specialist with over two decades of guiding experience — since 2004.</p>
         </div>
         <div class="pillar reveal reveal-delay-3">
-          <span class="pillar-idx">iv</span>
+          <span class="pillar-icon" aria-hidden="true">🏛️</span>
           <div class="pillar-title">History, Life &amp; Logistics in One</div>
           <p>Medieval wonders, real local culture, and seamless port-to-port logistics — all woven into a single, effortless day.</p>
         </div>
