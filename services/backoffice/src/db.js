@@ -102,6 +102,14 @@ export async function migrate() {
     `ALTER TABLE bookings ADD COLUMN IF NOT EXISTS balance_mail text NOT NULL DEFAULT 'pending';`,
   );
 
+  // Every-two-days nudge while a booking sits mid-process.
+  await q(
+    `ALTER TABLE bookings ADD COLUMN IF NOT EXISTS last_reminder_at timestamptz;`,
+  );
+  await q(
+    `ALTER TABLE bookings ADD COLUMN IF NOT EXISTS reminder_count integer NOT NULL DEFAULT 0;`,
+  );
+
   // Cancellation is a bookkeeping state: refunds stay a manual Stripe action.
   await q(
     `ALTER TABLE bookings ADD COLUMN IF NOT EXISTS cancelled_at timestamptz;`,

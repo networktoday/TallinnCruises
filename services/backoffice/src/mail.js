@@ -46,6 +46,7 @@ export function guideRequestMail({
   itinerary = [],
   guestsLabel,
   startTime,
+  shipName,
 }) {
   const text = [
     `Gentile ${guide.first_name},`,
@@ -60,6 +61,7 @@ export function guideRequestMail({
     `Orario di inizio: ${startTime || "da confermare"}`,
     `Pacchetto scelto: ${packageName || tourLabel}`,
     `Tour: ${tourLabel}`,
+    shipName ? `Nave da crociera: ${shipName}` : null,
     guestsLabel ? `Partecipanti: ${guestsLabel}` : null,
     "",
     "Itinerario incluso:",
@@ -83,6 +85,7 @@ export function guideRequestMail({
     <table style="border-collapse:collapse">
       <tr><td style="padding:5px 18px 5px 0;color:#6b7885;font-size:13px">Pacchetto scelto</td><td style="padding:5px 0"><strong>${escapeHtml(packageName || tourLabel)}</strong></td></tr>
       <tr><td style="padding:5px 18px 5px 0;color:#6b7885;font-size:13px">Tour</td><td style="padding:5px 0">${escapeHtml(tourLabel)}</td></tr>
+      ${shipName ? `<tr><td style="padding:5px 18px 5px 0;color:#6b7885;font-size:13px">Nave da crociera</td><td style="padding:5px 0"><strong>${escapeHtml(shipName)}</strong></td></tr>` : ""}
       ${guestsLabel ? `<tr><td style="padding:5px 18px 5px 0;color:#6b7885;font-size:13px">Partecipanti</td><td style="padding:5px 0">${escapeHtml(guestsLabel)}</td></tr>` : ""}
       <tr><td style="padding:5px 18px 5px 0;color:#6b7885;font-size:13px">Orario di inizio</td><td style="padding:5px 0"><strong>${startTime || "da confermare"}</strong></td></tr>
       <tr><td style="padding:5px 18px 5px 0;color:#6b7885;font-size:13px">Durata</td><td style="padding:5px 0">${hours} ore</td></tr>
@@ -226,6 +229,64 @@ export function balanceRequestMail({ booking, payUrl, fmtMoney, fmtDate }) {
       </p>
       <table style="border-collapse:collapse;margin:22px 0">${rows(pairs)}</table>
       <p style="font-size:13px;color:#6b7885">The payment link stays valid for 24 hours — reply to this email if it expires.</p>`),
+  };
+}
+
+/**
+ * Every-two-days nudge. With a payUrl the balance is outstanding and the mail
+ * asks for payment; without one the deposit is in and we are still lining up a
+ * guide, so it only reports progress.
+ */
+export function reminderMail({ booking, payUrl, fmtMoney, fmtDate }) {
+  const balance = booking.total_cents - booking.deposit_cents;
+  const pairs = [
+    ["Reference", booking.ref],
+    ["Tour", booking.tour_label],
+    ["Date", fmtDate(booking.excursion_date)],
+    ["Start time", booking.start_time || "to confirm"],
+    ["Guests", booking.guests_label],
+    ["Deposit paid", fmtMoney(booking.deposit_cents, booking.currency)],
+    ["Balance outstanding", fmtMoney(balance, booking.currency)],
+  ];
+
+  if (payUrl) {
+    return {
+      subject: `Reminder — one step left to confirm ${booking.ref}`,
+      text: [
+        `Your guide is confirmed and your Tallinn tour is held for you.`,
+        `Only the balance is left to pay:`,
+        payUrl,
+        ``,
+        ...pairs.map(([k, v]) => `${k}: ${v}`),
+        ``,
+        `Reply to this email if you need to change anything.`,
+        `Tallinn Private Tours`,
+      ].join("\n"),
+      html: wrap(`<p>Your guide is confirmed and your Tallinn tour is held for you. <strong>Only the balance is left to pay.</strong></p>
+        <p style="margin:26px 0">
+          <a href="${payUrl}" style="background:#0C2032;color:#fff;text-decoration:none;padding:14px 32px;font-weight:bold;display:inline-block">Pay the balance</a>
+        </p>
+        <table style="border-collapse:collapse;margin:22px 0">${rows(pairs)}</table>
+        <p style="font-size:13px;color:#6b7885">Reply to this email if you need to change anything.</p>`),
+    };
+  }
+
+  return {
+    subject: `Your Tallinn tour ${booking.ref} — we are confirming your guide`,
+    text: [
+      `A quick update on your booking: your deposit is in and we are confirming a`,
+      `guide for your date. As soon as one is assigned we will email you a link`,
+      `to settle the balance, which completes the booking.`,
+      ``,
+      ...pairs.map(([k, v]) => `${k}: ${v}`),
+      ``,
+      `Reply to this email if you need to change anything.`,
+      `Tallinn Private Tours`,
+    ].join("\n"),
+    html: wrap(`<p>A quick update on your booking: your deposit is in and we are confirming a guide for your date.</p>
+      <p>As soon as one is assigned we will email you a link to settle the balance, which completes the booking.</p>
+      <table style="border-collapse:collapse;margin:22px 0">${rows(pairs)}</table>
+      <p style="font-size:13px;color:#6b7885">Reply to this email if you need to change anything.</p>`),
   };
 }
 

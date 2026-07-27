@@ -14,6 +14,7 @@ import {
 import {
   balanceRequestMail,
   customerSummaryMail,
+  reminderMail,
   depositRequestMail,
   guidesConfirmedMail,
   escapeHtml as esc,
@@ -38,6 +39,9 @@ const SITE_URL = process.env.SITE_URL || "https://privatetourstallinn.com";
 const CURRENCY = (process.env.STRIPE_CURRENCY || "usd").toLowerCase();
 const NOTIFY_EMAIL = process.env.NOTIFY_EMAIL || "info@viabaltica.eu";
 const GUIDES_REQUIRED = Number(process.env.GUIDES_REQUIRED || 2);
+const REMINDER_DAYS = Number(process.env.REMINDER_DAYS || 2);
+const REMINDER_MAX = Number(process.env.REMINDER_MAX || 6);
+const SWEEP_MINUTES = Number(process.env.SWEEP_MINUTES || 60);
 const ADMIN_USER = process.env.ADMIN_USERNAME || "admin";
 const ADMIN_PASS = process.env.ADMIN_PASSWORD || "";
 const SESSION_SECRET =
@@ -483,6 +487,7 @@ async function deliverGuideRequest(booking, guide, request) {
     itinerary: tour.itinerary || [],
     guestsLabel: booking.guests_label,
     startTime: booking.start_time,
+    shipName: booking.ship_name,
   });
 
   if (!mailConfigured) {
@@ -940,6 +945,7 @@ app.get("/admin/bookings/:id", requireAuth, async (req, res) => {
           <dt>Deposit 10%</dt><dd><strong>${money(b.deposit_cents, b.currency)}</strong>${b.paid_at ? ` <span class="muted">paid ${dateShort(b.paid_at)}</span>` : ""}</dd>
           <dt>Balance</dt><dd>${money(b.total_cents - b.deposit_cents, b.currency)}${b.balance_paid_at ? ` <span class="muted">paid ${dateShort(b.balance_paid_at)}</span>` : b.balance_session_id ? ' <span class="muted">link sent</span>' : ""}</dd>
           <dt>Stripe</dt><dd class="muted"><code>${esc(b.stripe_payment_id || b.stripe_session_id || "—")}</code></dd>
+          <dt>Reminders</dt><dd>${b.reminder_count ? `${b.reminder_count} sent${b.last_reminder_at ? ` · last ${dateShort(b.last_reminder_at)}` : ""}` : '<span class="muted">none yet</span>'}</dd>
         </dl>
         ${
           b.status === "guides_confirmed"
@@ -1268,6 +1274,62 @@ app.post("/admin/guides/:id/delete", requireAuth, async (req, res) => {
 
 /* ────────────────────────────  misc  ──────────────────────────── */
 
+/* ─────────────  every-two-days reminder for stalled bookings  ───────────── */
+
+/**
+ * Nudges customers whose booking sits in deposit_paid or guides_confirmed.
+ * guides_confirmed gets a fresh balance link (Stripe links die after 24h);
+ * deposit_paid gets a progress note, since the next move is ours. Stops at
+ * REMINDER_MAX and never chases a booking past its excursion date.
+ */
+async function sendReminders() {
+  if (!mailConfigured) return;
+
+  const { rows } = await q(
+    `SELECT * FROM bookings
+      WHERE status IN ('deposit_paid','guides_confirmed')
+        AND excursion_date >= current_date
+        AND reminder_count < $2
+        AND coalesce(last_reminder_at, created_at) < now() - ($1 || ' days')::interval
+      ORDER BY id
+      LIMIT 50`,
+    [REMINDER_DAYS, REMINDER_MAX],
+  );
+
+  for (const booking of rows) {
+    try {
+      let payUrl = null;
+      if (booking.status === "guides_confirmed" && stripe) {
+        const session = await createBalanceSession(booking);
+        payUrl = session.url;
+        await q(`UPDATE bookings SET balance_session_id=$2 WHERE id=$1`, [
+          booking.id,
+          session.id,
+        ]);
+      }
+
+      await sendMail({
+        to: booking.customer_email,
+        ...reminderMail({ booking, payUrl, fmtMoney, fmtDate }),
+      });
+
+      await q(
+        `UPDATE bookings
+            SET last_reminder_at=now(), reminder_count=reminder_count+1
+          WHERE id=$1`,
+        [booking.id],
+      );
+      console.log(`reminder ${booking.reminder_count + 1} sent for ${booking.ref}`);
+    } catch (err) {
+      console.error(`reminder failed for ${booking.ref}:`, err.message);
+      // Stamp the attempt so one bad address cannot block the sweep.
+      await q(`UPDATE bookings SET last_reminder_at=now() WHERE id=$1`, [
+        booking.id,
+      ]);
+    }
+  }
+}
+
 app.get("/api/health", async (req, res) => {
   try {
     await q("SELECT 1");
@@ -1277,6 +1339,8 @@ app.get("/api/health", async (req, res) => {
       mail: mailConfigured ? mailFrom : false,
       currency: CURRENCY,
       depositRate: DEPOSIT_RATE,
+      guidesRequired: GUIDES_REQUIRED,
+      reminderDays: REMINDER_DAYS,
       tours: Object.keys(TOURS),
       guestRanges: Object.keys(GUEST_RANGES),
     });
@@ -1295,9 +1359,17 @@ migrate()
   .then(() => {
     app.listen(PORT, () => {
       console.log(
-        `backoffice on :${PORT} — stripe=${Boolean(stripe)} mail=${mailConfigured}`,
+        `backoffice on :${PORT} — stripe=${Boolean(stripe)} mail=${mailConfigured} reminders=every ${REMINDER_DAYS}d`,
       );
     });
+
+    // Sweep on a timer rather than a host cron: one moving part, and the
+    // per-booking timestamp is what actually enforces the cadence.
+    setTimeout(() => void sendReminders().catch(console.error), 30_000);
+    setInterval(
+      () => void sendReminders().catch(console.error),
+      SWEEP_MINUTES * 60_000,
+    ).unref?.();
   })
   .catch((err) => {
     console.error("migration failed:", err);

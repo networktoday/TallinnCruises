@@ -38,7 +38,10 @@ const STYLE = `
   .tag-yes{color:#fff;background:var(--ok);border-color:var(--ok)}
   .tag-no{color:#fff;background:var(--no);border-color:var(--no)}
   .tag-pending{color:var(--muted)}
-  .tag-conf{color:#fff;background:#1D6FA5;border-color:#1D6FA5}
+  .tag-st-red{color:#fff;background:#C0392B;border-color:#C0392B}
+  .tag-st-yellow{color:#4A3A08;background:#F2C744;border-color:#E0B531}
+  .tag-st-orange{color:#fff;background:#E07B18;border-color:#E07B18}
+  .tag-st-green{color:#fff;background:#12874F;border-color:#12874F}
   .btn{display:inline-flex;align-items:center;gap:8px;background:var(--ink);color:#fff;border:1px solid var(--ink);padding:11px 20px;font-size:13.5px;font-weight:600;cursor:pointer;text-decoration:none;border-radius:2px}
   .btn:hover{background:var(--ink-soft)}
   .btn-gold{background:var(--gold);border-color:var(--gold);color:var(--ink)}
@@ -132,12 +135,12 @@ export function answerTag(answer) {
 
 export function statusTag(status) {
   if (status === "deposit_paid")
-    return '<span class="tag tag-paid">Deposit paid</span>';
+    return '<span class="tag tag-st-yellow">Deposit paid</span>';
   if (status === "guides_confirmed")
-    return '<span class="tag tag-conf">Guides confirmed</span>';
+    return '<span class="tag tag-st-orange">Guides confirmed</span>';
   if (status === "paid_in_full")
-    return '<span class="tag tag-paid">Paid in full</span>';
+    return '<span class="tag tag-st-green">Paid in full</span>';
   if (status === "cancelled")
     return '<span class="tag tag-no">Cancelled</span>';
-  return '<span class="tag tag-wait">Awaiting deposit</span>';
+  return '<span class="tag tag-st-red">Awaiting deposit</span>';
 }
