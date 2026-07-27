@@ -189,6 +189,98 @@ export function depositRequestMail({ booking, payUrl, fmtMoney, fmtDate }) {
   };
 }
 
+/**
+ * Sent to the customer once enough guides have confirmed: the tour is on,
+ * paying the balance completes the booking.
+ */
+export function balanceRequestMail({ booking, payUrl, fmtMoney, fmtDate }) {
+  const balance = booking.total_cents - booking.deposit_cents;
+  const pairs = [
+    ["Reference", booking.ref],
+    ["Tour", booking.tour_label],
+    ["Date", fmtDate(booking.excursion_date)],
+    ["Start time", booking.start_time || "to confirm"],
+    ["Guests", booking.guests_label],
+    ["Total", fmtMoney(booking.total_cents, booking.currency)],
+    ["Deposit already paid", fmtMoney(booking.deposit_cents, booking.currency)],
+    ["Balance to pay now", fmtMoney(balance, booking.currency)],
+  ];
+
+  return {
+    subject: `Your guide is confirmed — settle the balance to finalise ${booking.ref}`,
+    text: [
+      `Good news: your private Tallinn tour has a confirmed guide.`,
+      ``,
+      `Pay the remaining balance and your booking is fully confirmed:`,
+      payUrl,
+      ``,
+      ...pairs.map(([k, v]) => `${k}: ${v}`),
+      ``,
+      `The payment link stays valid for 24 hours — reply to this email if it expires.`,
+      `Tallinn Private Tours`,
+    ].join("\n"),
+    html: wrap(`<p><strong>Good news: your private Tallinn tour has a confirmed guide.</strong></p>
+      <p>Pay the remaining balance and your booking is fully confirmed.</p>
+      <p style="margin:26px 0">
+        <a href="${payUrl}" style="background:#0C2032;color:#fff;text-decoration:none;padding:14px 32px;font-weight:bold;display:inline-block">Pay the balance</a>
+      </p>
+      <table style="border-collapse:collapse;margin:22px 0">${rows(pairs)}</table>
+      <p style="font-size:13px;color:#6b7885">The payment link stays valid for 24 hours — reply to this email if it expires.</p>`),
+  };
+}
+
+/** Ops alert: enough guides said yes, the customer has been asked to settle. */
+export function guidesConfirmedMail({
+  booking,
+  guides,
+  fmtMoney,
+  fmtDate,
+  adminUrl,
+}) {
+  const balance = booking.total_cents - booking.deposit_cents;
+  const pairs = [
+    ["Reference", booking.ref],
+    ["Tour", booking.tour_label],
+    ["Date", fmtDate(booking.excursion_date)],
+    ["Start time", booking.start_time || "to confirm"],
+    ["Duration", `${booking.tour_hours} hours`],
+    ["Guests", `${booking.guests_label} (priced for ${booking.guests_count})`],
+    ["Cruise ship", booking.ship_name],
+    ["Customer", `${booking.customer_email} · ${booking.customer_phone}`],
+    ["Total", fmtMoney(booking.total_cents, booking.currency)],
+    ["Deposit paid", fmtMoney(booking.deposit_cents, booking.currency)],
+    ["Balance requested", fmtMoney(balance, booking.currency)],
+    ["Notes", booking.notes || "none"],
+  ];
+
+  const list = guides
+    .map((g) => `${g.first_name} ${g.last_name} (${g.email} · ${g.phone})`)
+    .join("\n  · ");
+
+  return {
+    subject: `${guides.length} guides available — ${booking.ref} on ${fmtDate(booking.excursion_date)}`,
+    text: [
+      `${guides.length} guides confirmed availability for this excursion.`,
+      ``,
+      `Guides who said SI:`,
+      `  · ${list}`,
+      ``,
+      ...pairs.map(([k, v]) => `${k}: ${v}`),
+      ``,
+      `The customer has been emailed a Stripe link for the balance.`,
+      `Backoffice: ${adminUrl}`,
+    ].join("\n"),
+    html: wrap(`<p><strong>${guides.length} guides confirmed availability for this excursion.</strong></p>
+      <p style="margin:0 0 8px;font-size:11px;font-weight:bold;letter-spacing:.14em;text-transform:uppercase;color:#9C7328">Guides who said SI</p>
+      <ul style="margin:0 0 22px;padding-left:20px">
+        ${guides.map((g) => `<li style="margin-bottom:6px">${escapeHtml(`${g.first_name} ${g.last_name}`)} — ${escapeHtml(g.email)} · ${escapeHtml(g.phone)}</li>`).join("")}
+      </ul>
+      <table style="border-collapse:collapse;margin:0 0 22px">${rows(pairs)}</table>
+      <p>The customer has been emailed a Stripe link for the balance.</p>
+      <p><a href="${adminUrl}" style="background:#0C2032;color:#fff;text-decoration:none;padding:12px 26px;display:inline-block">Open in the backoffice</a></p>`),
+  };
+}
+
 /** Operations notification with everything needed to act on the booking. */
 export function internalNotificationMail({ booking, fmtMoney, fmtDate, adminUrl }) {
   const addons = Array.isArray(booking.addons) ? booking.addons : [];

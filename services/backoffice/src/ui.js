@@ -38,6 +38,7 @@ const STYLE = `
   .tag-yes{color:#fff;background:var(--ok);border-color:var(--ok)}
   .tag-no{color:#fff;background:var(--no);border-color:var(--no)}
   .tag-pending{color:var(--muted)}
+  .tag-conf{color:#fff;background:#1D6FA5;border-color:#1D6FA5}
   .btn{display:inline-flex;align-items:center;gap:8px;background:var(--ink);color:#fff;border:1px solid var(--ink);padding:11px 20px;font-size:13.5px;font-weight:600;cursor:pointer;text-decoration:none;border-radius:2px}
   .btn:hover{background:var(--ink-soft)}
   .btn-gold{background:var(--gold);border-color:var(--gold);color:var(--ink)}
@@ -132,6 +133,8 @@ export function answerTag(answer) {
 export function statusTag(status) {
   if (status === "deposit_paid")
     return '<span class="tag tag-paid">Deposit paid</span>';
+  if (status === "guides_confirmed")
+    return '<span class="tag tag-conf">Guides confirmed</span>';
   if (status === "paid_in_full")
     return '<span class="tag tag-paid">Paid in full</span>';
   if (status === "cancelled")

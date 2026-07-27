@@ -12,8 +12,10 @@ import {
   priceBooking,
 } from "./tours.js";
 import {
+  balanceRequestMail,
   customerSummaryMail,
   depositRequestMail,
+  guidesConfirmedMail,
   escapeHtml as esc,
   guideRequestMail,
   internalNotificationMail,
@@ -35,6 +37,7 @@ const PORT = Number(process.env.PORT || 5001);
 const SITE_URL = process.env.SITE_URL || "https://privatetourstallinn.com";
 const CURRENCY = (process.env.STRIPE_CURRENCY || "usd").toLowerCase();
 const NOTIFY_EMAIL = process.env.NOTIFY_EMAIL || "info@viabaltica.eu";
+const GUIDES_REQUIRED = Number(process.env.GUIDES_REQUIRED || 2);
 const ADMIN_USER = process.env.ADMIN_USERNAME || "admin";
 const ADMIN_PASS = process.env.ADMIN_PASSWORD || "";
 const SESSION_SECRET =
@@ -116,7 +119,9 @@ app.post(
 
     if (event.type === "checkout.session.completed") {
       try {
-        await onDepositPaid(event.data.object);
+        const session = event.data.object;
+        if (session.metadata?.kind === "balance") await onBalancePaid(session);
+        else await onDepositPaid(session);
       } catch (err) {
         console.error("deposit handling failed:", err);
         return res.status(500).send("handler failed");
@@ -302,7 +307,7 @@ async function dispatchBookingEmails(booking) {
   await askGuides(booking);
 }
 
-const PAID = new Set(["deposit_paid", "paid_in_full"]);
+const PAID = new Set(["deposit_paid", "guides_confirmed", "paid_in_full"]);
 
 /**
  * One availability request per active guide. Refuses to run until the deposit
@@ -335,6 +340,118 @@ async function askGuides(booking) {
 }
 
 /* ──────────  deposit paid → confirm, and cover any missed guide  ────────── */
+
+/* ────────  enough guides said SI → confirm and ask for the balance  ──────── */
+
+/** Opens a Stripe Checkout session for whatever is still owed. */
+async function createBalanceSession(booking) {
+  const balance = booking.total_cents - booking.deposit_cents;
+  return stripe.checkout.sessions.create({
+    mode: "payment",
+    customer_email: booking.customer_email,
+    client_reference_id: booking.ref,
+    metadata: { booking_id: String(booking.id), ref: booking.ref, kind: "balance" },
+    line_items: [
+      {
+        quantity: 1,
+        price_data: {
+          currency: booking.currency,
+          unit_amount: balance,
+          product_data: {
+            name: `Balance — ${booking.tour_label}`,
+            description: `${booking.guests_label} · ${dateShort(booking.excursion_date)} · deposit ${money(booking.deposit_cents, booking.currency)} already paid`,
+          },
+        },
+      },
+    ],
+    success_url: `${SITE_URL}/booking/success?ref=${booking.ref}`,
+    cancel_url: `${SITE_URL}/booking/cancelled?ref=${booking.ref}`,
+  });
+}
+
+/** Emails the balance link to the customer; returns the Stripe session. */
+async function sendBalanceRequest(booking) {
+  const session = await createBalanceSession(booking);
+  await sendMail({
+    to: booking.customer_email,
+    ...balanceRequestMail({ booking, payUrl: session.url, fmtMoney, fmtDate }),
+  });
+  await q(
+    `UPDATE bookings SET balance_session_id=$2, balance_mail='sent' WHERE id=$1`,
+    [booking.id, session.id],
+  );
+  return session;
+}
+
+/**
+ * Called after every SI. Once GUIDES_REQUIRED guides are available the booking
+ * moves to guides_confirmed, the customer is asked to settle the balance and
+ * operations are told who is free. The status guard keeps it single-shot.
+ */
+async function maybeConfirmGuides(bookingId) {
+  const { rows: available } = await q(
+    `SELECT g.first_name, g.last_name, g.email, g.phone
+       FROM guide_requests gr JOIN guides g ON g.id = gr.guide_id
+      WHERE gr.booking_id = $1 AND gr.answer = 'yes'
+      ORDER BY gr.answered_at`,
+    [bookingId],
+  );
+  if (available.length < GUIDES_REQUIRED) return;
+
+  const { rows } = await q(
+    `UPDATE bookings
+        SET status='guides_confirmed', guides_confirmed_at=now()
+      WHERE id=$1 AND status='deposit_paid'
+      RETURNING *`,
+    [bookingId],
+  );
+  if (!rows.length) return; // already confirmed, unpaid, or cancelled
+  const booking = rows[0];
+
+  if (!mailConfigured || !stripe) {
+    await q(`UPDATE bookings SET balance_mail='not_sent' WHERE id=$1`, [
+      booking.id,
+    ]);
+    return;
+  }
+
+  try {
+    await sendBalanceRequest(booking);
+  } catch (err) {
+    console.error("balance request failed:", err.message);
+    await q(`UPDATE bookings SET balance_mail=$2 WHERE id=$1`, [
+      booking.id,
+      `failed: ${err.message}`.slice(0, 400),
+    ]);
+  }
+
+  try {
+    await sendMail({
+      to: NOTIFY_EMAIL,
+      ...guidesConfirmedMail({
+        booking,
+        guides: available,
+        fmtMoney,
+        fmtDate,
+        adminUrl: `${SITE_URL}/admin/bookings/${booking.id}`,
+      }),
+    });
+  } catch (err) {
+    console.error("guides-confirmed notification failed:", err.message);
+  }
+}
+
+/** Balance settled → the booking is fully paid. */
+async function onBalancePaid(session) {
+  const bookingId = Number(session.metadata?.booking_id);
+  if (!bookingId) return;
+  await q(
+    `UPDATE bookings
+        SET status='paid_in_full', balance_paid_at=now(), balance_payment_id=$2
+      WHERE id=$1 AND status <> 'paid_in_full'`,
+    [bookingId, session.payment_intent || null],
+  );
+}
 
 async function onDepositPaid(session) {
   const bookingId = Number(session.metadata?.booking_id);
@@ -421,6 +538,14 @@ app.get("/g/:token/:answer", async (req, res) => {
     `UPDATE guide_requests SET answer=$2, answered_at=now() WHERE id=$1`,
     [request.id, answer],
   );
+
+  if (answer === "yes") {
+    try {
+      await maybeConfirmGuides(request.booking_id);
+    } catch (err) {
+      console.error("confirmation check failed:", err);
+    }
+  }
 
   const yes = answer === "yes";
   res.send(
@@ -687,7 +812,12 @@ app.post("/admin/bookings", requireAuth, async (req, res) => {
   )
     return res.redirect("/admin/bookings/new");
 
-  const state = ["awaiting_deposit", "deposit_paid", "paid_in_full"].includes(
+  const state = [
+    "awaiting_deposit",
+    "deposit_paid",
+    "guides_confirmed",
+    "paid_in_full",
+  ].includes(
     status,
   )
     ? status
@@ -776,6 +906,7 @@ app.get("/admin/bookings/:id", requireAuth, async (req, res) => {
     </div>
     ${req.query.ok === "link" ? '<div class="note">Payment link emailed to the customer.</div>' : ""}
     ${req.query.ok === "notes" ? '<div class="note">Notes saved.</div>' : ""}
+    ${req.query.ok === "balance" ? '<div class="note">Balance payment link emailed to the customer.</div>' : ""}
     ${req.query.e === "link" ? '<div class="note note-bad">Could not send the payment link — check the service logs.</div>' : ""}
     ${req.query.e === "cfg" ? '<div class="note note-bad">Stripe or Resend is not configured, so no link was sent.</div>' : ""}
     ${req.query.e === "unpaid" ? '<div class="note note-bad">Guides are asked only after the deposit is paid.</div>' : ""}
@@ -807,9 +938,17 @@ app.get("/admin/bookings/:id", requireAuth, async (req, res) => {
           <dt>Price / person</dt><dd>${money(b.price_pp_cents, b.currency)}</dd>
           <dt>Total</dt><dd>${money(b.total_cents, b.currency)}</dd>
           <dt>Deposit 10%</dt><dd><strong>${money(b.deposit_cents, b.currency)}</strong>${b.paid_at ? ` <span class="muted">paid ${dateShort(b.paid_at)}</span>` : ""}</dd>
-          <dt>Balance</dt><dd>${money(b.total_cents - b.deposit_cents, b.currency)}</dd>
+          <dt>Balance</dt><dd>${money(b.total_cents - b.deposit_cents, b.currency)}${b.balance_paid_at ? ` <span class="muted">paid ${dateShort(b.balance_paid_at)}</span>` : b.balance_session_id ? ' <span class="muted">link sent</span>' : ""}</dd>
           <dt>Stripe</dt><dd class="muted"><code>${esc(b.stripe_payment_id || b.stripe_session_id || "—")}</code></dd>
         </dl>
+        ${
+          b.status === "guides_confirmed"
+            ? `<form method="post" action="/admin/bookings/${b.id}/balance-link" style="margin-top:24px;padding-top:20px;border-top:1px solid var(--line)">
+                 <button class="btn btn-gold btn-sm">Re-send the balance payment link</button>
+                 <div class="muted" style="margin-top:10px">Emails ${esc(b.customer_email)} a Stripe link for ${money(b.total_cents - b.deposit_cents, b.currency)}. Valid 24 hours.</div>
+               </form>`
+            : ""
+        }
         ${
           !paid && b.status !== "cancelled"
             ? `<form method="post" action="/admin/bookings/${b.id}/payment-link" style="margin-top:24px;padding-top:20px;border-top:1px solid var(--line)">
@@ -951,6 +1090,25 @@ app.post("/admin/bookings/:id/notes", requireAuth, async (req, res) => {
   const notes = req.body?.notes ? String(req.body.notes).slice(0, 2000) : null;
   await q(`UPDATE bookings SET notes=$2 WHERE id=$1`, [id, notes]);
   res.redirect(`/admin/bookings/${id}?ok=notes`);
+});
+
+app.post("/admin/bookings/:id/balance-link", requireAuth, async (req, res) => {
+  const id = Number(req.params.id);
+  const { rows } = await q(
+    `SELECT * FROM bookings WHERE id=$1 AND status='guides_confirmed'`,
+    [id],
+  );
+  if (!rows.length) return res.redirect(`/admin/bookings/${id}`);
+  if (!stripe || !mailConfigured)
+    return res.redirect(`/admin/bookings/${id}?e=cfg`);
+
+  try {
+    await sendBalanceRequest(rows[0]);
+    res.redirect(`/admin/bookings/${id}?ok=balance`);
+  } catch (err) {
+    console.error("balance link failed:", err.message);
+    res.redirect(`/admin/bookings/${id}?e=link`);
+  }
 });
 
 app.post("/admin/bookings/:id/cancel", requireAuth, async (req, res) => {
