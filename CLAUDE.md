@@ -43,10 +43,16 @@ The site is a single self-contained `index.html` (HTML + CSS + JS) served by Vit
 
 ## Required environment variables
 
+All project credentials/config live in `.env` at the repo root (git-ignored,
+mode 600). `.env.example` is the committed template.
+
 `artifacts/tallinn-shore-tours/vite.config.ts` refuses to start without:
 
 - `PORT` — dev/preview server port (e.g. `5173`)
 - `BASE_PATH` — base public path (use `/` for root)
+
+Load them with e.g. `set -a; . ./.env; set +a` before running pnpm commands,
+or prefix the command (`PORT=5173 BASE_PATH=/ pnpm ...`).
 
 ## Key Commands
 
