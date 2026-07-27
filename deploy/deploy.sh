@@ -6,4 +6,4 @@ cd "$(dirname "$0")/.."
 PORT=5000 BASE_PATH=/ pnpm --filter @workspace/tallinn-shore-tours run build
 docker compose up -d --build
 
-echo "Deployed: https://viabaltica.network.today"
+echo "Deployed: https://privatetourstallinn.com"

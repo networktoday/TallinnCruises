@@ -36,7 +36,10 @@ services:
       - internal
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost:5000/"]
+      # 127.0.0.1 e non "localhost": nginx ascolta solo su IPv4 (0.0.0.0:5000)
+      # e busybox-wget prova prima ::1 -> connection refused.
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:5000/"]
       interval: 30s
       timeout: 5s
       retries: 3
+      start_period: 15s

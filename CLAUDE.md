@@ -54,6 +54,19 @@ mode 600). `.env.example` is the committed template.
 Load them with e.g. `set -a; . ./.env; set +a` before running pnpm commands,
 or prefix the command (`PORT=5173 BASE_PATH=/ pnpm ...`).
 
+### Stripe
+
+Payments will use Stripe, starting in the **sandbox/test** environment.
+Keys live in `.env`: `STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`,
+`STRIPE_WEBHOOK_SECRET` (plus `STRIPE_CURRENCY`, `STRIPE_MODE=test`).
+
+- Only test keys (`sk_test_…` / `pk_test_…`) belong in this file.
+- `STRIPE_SECRET_KEY` is server-side only — it must never reach the frontend
+  bundle. Only the publishable key may be exposed to the browser.
+- Payments need the API server (`artifacts/api-server`) to be wired up first:
+  the site is currently static, so there is no backend to create
+  PaymentIntents/Checkout Sessions or receive webhooks yet.
+
 ## Key Commands
 
 Run from the repo root (`/docker/projects/TallinnCruises`):
@@ -69,10 +82,17 @@ Run from the repo root (`/docker/projects/TallinnCruises`):
 
 ## Deployment (production)
 
-Live at **https://viabaltica.network.today** (Let's Encrypt via Caddy).
+Live at **https://privatetourstallinn.com** (Let's Encrypt via Caddy).
 
-- Reverse proxy: Caddy (`/docker/infrastructure/traefik/Caddyfile`, entry
-  `viabaltica.network.today → viabaltica-app:5000`, docker network `proxy`).
+- Reverse proxy: Caddy (`/docker/infrastructure/traefik/Caddyfile`, docker
+  network `proxy`):
+  - `privatetourstallinn.com → viabaltica-app:5000`
+  - `www.privatetourstallinn.com` → 301 to the apex domain
+  - `viabaltica.network.today` (previous domain) → 301 to the new domain
+  - Caddy has `admin off`, so config changes need `docker restart caddy`
+    (`caddy reload` over the admin API is unavailable).
+- Container/compose names still use the `viabaltica` prefix (historical, from
+  the original deployment scaffold) — only the public domain changed.
 - Stack (this repo's `docker-compose.yml`, compose project `viabaltica`):
   - `viabaltica-app` — nginx:alpine serving the pre-built site on port 5000
     (`Dockerfile` + `deploy/nginx.conf`)
