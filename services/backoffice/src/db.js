@@ -102,6 +102,17 @@ export async function migrate() {
     `ALTER TABLE bookings ADD COLUMN IF NOT EXISTS balance_mail text NOT NULL DEFAULT 'pending';`,
   );
 
+  // One assigned guide per booking; cleared when that guide steps back.
+  await q(
+    `ALTER TABLE bookings ADD COLUMN IF NOT EXISTS assigned_guide_id integer REFERENCES guides(id) ON DELETE SET NULL;`,
+  );
+  await q(
+    `ALTER TABLE bookings ADD COLUMN IF NOT EXISTS assigned_at timestamptz;`,
+  );
+  await q(
+    `ALTER TABLE bookings ADD COLUMN IF NOT EXISTS assignment_mail text;`,
+  );
+
   // Every-two-days nudge while a booking sits mid-process.
   await q(
     `ALTER TABLE bookings ADD COLUMN IF NOT EXISTS last_reminder_at timestamptz;`,

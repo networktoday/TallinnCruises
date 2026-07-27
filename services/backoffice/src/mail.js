@@ -107,6 +107,67 @@ export function guideRequestMail({
   };
 }
 
+/** Tells a guide the excursion is theirs. Sent when an operator assigns them. */
+export function guideAssignedMail({
+  guide,
+  booking,
+  packageName,
+  itinerary = [],
+  dateLabel,
+}) {
+  const details = [
+    ["Data", dateLabel],
+    ["Orario di inizio", booking.start_time || "da confermare"],
+    ["Durata", `${booking.tour_hours} ore`],
+    ["Pacchetto", packageName || booking.tour_label],
+    ["Tour", booking.tour_label],
+    ["Nave da crociera", booking.ship_name],
+    ["Partecipanti", booking.guests_label],
+    ["Riferimento", booking.ref],
+    ["Note", booking.notes || "nessuna"],
+  ];
+
+  const text = [
+    `Gentile ${guide.first_name},`,
+    ``,
+    `l'escursione del ${dateLabel} è stata assegnata a te. Confermiamo che sarai tu la guida.`,
+    ``,
+    ...details.map(([k, v]) => `${k}: ${v}`),
+    ``,
+    "Itinerario incluso:",
+    ...itinerary.map((step) => `  · ${step}`),
+    ``,
+    `Per qualsiasi necessità rispondi a questa email.`,
+    `Tallinn Private Tours`,
+  ].join("\n");
+
+  const html = `<!doctype html>
+<div style="font-family:Arial,Helvetica,sans-serif;font-size:15px;color:#1b2b38;line-height:1.65;max-width:620px">
+  <p>Gentile ${escapeHtml(guide.first_name)},</p>
+  <p style="background:#E9F6F0;border-left:3px solid #12874F;padding:14px 18px;margin:20px 0">
+    <strong>L'escursione del ${escapeHtml(dateLabel)} è stata assegnata a te.</strong><br>
+    Confermiamo che sarai tu la guida.
+  </p>
+  <table style="border-collapse:collapse;margin:22px 0">
+    ${details.map(([k, v]) => `<tr><td style="padding:6px 18px 6px 0;color:#6b7885;font-size:13px;white-space:nowrap">${escapeHtml(k)}</td><td style="padding:6px 0"><strong>${escapeHtml(v)}</strong></td></tr>`).join("")}
+  </table>
+  <p style="margin:0 0 8px;font-size:13px;color:#6b7885">Itinerario incluso nel pacchetto:</p>
+  <ul style="margin:0;padding-left:20px">
+    ${itinerary.map((step) => `<li style="margin-bottom:6px">${escapeHtml(step)}</li>`).join("")}
+  </ul>
+  <p style="margin-top:26px">Per qualsiasi necessità rispondi a questa email.</p>
+  <p style="margin-top:26px;padding-top:16px;border-top:1px solid #e2ddd2;font-size:12px;color:#6b7885">
+    Tallinn Private Tours · privatetourstallinn.com
+  </p>
+</div>`;
+
+  return {
+    subject: `Escursione assegnata — ${dateLabel} (${booking.tour_hours} ore)`,
+    text,
+    html,
+  };
+}
+
 const wrap = (inner) => `<!doctype html>
 <div style="font-family:Arial,Helvetica,sans-serif;font-size:15px;color:#1b2b38;line-height:1.65;max-width:620px">
 ${inner}

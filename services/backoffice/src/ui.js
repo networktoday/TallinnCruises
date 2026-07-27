@@ -67,6 +67,11 @@ const STYLE = `
   .stat-l{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-top:6px}
   .link{color:var(--gold-deep);font-weight:600;text-decoration:none;border-bottom:1px solid rgba(156,115,40,.35)}
   code{font-family:ui-monospace,Menlo,monospace;font-size:12px;background:rgba(12,32,50,.05);padding:2px 6px;word-break:break-all}
+  .assigned-banner{display:flex;align-items:center;gap:18px;background:#E9F6F0;border:1px solid rgba(18,135,79,.35);border-left:4px solid #12874F;padding:18px 22px;margin-bottom:26px}
+  .assigned-star{font-size:30px;line-height:1;color:#12874F}
+  .assigned-title{font-family:var(--serif);font-size:20px;font-weight:700;color:#0B5F45}
+  .assigned-sub{font-size:13px;color:#4A6B5D;margin-top:4px}
+  .assigned-flag{display:inline-block;font-size:9.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#fff;background:#12874F;padding:3px 8px;margin-bottom:7px}
   .center{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:30px}
   .center .card{width:100%;max-width:420px}
   @media(max-width:900px){.grid2,.grid-form,.stats{grid-template-columns:1fr}.stat{border-right:none;border-bottom:1px solid var(--line)}}

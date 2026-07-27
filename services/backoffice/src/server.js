@@ -14,6 +14,7 @@ import {
 import {
   balanceRequestMail,
   customerSummaryMail,
+  guideAssignedMail,
   reminderMail,
   depositRequestMail,
   guidesConfirmedMail,
@@ -660,12 +661,14 @@ app.post("/admin/logout", (req, res) => {
 app.get("/admin", requireAuth, async (req, res) => {
   const bookings = await q(
     `SELECT b.*,
+            (ag.first_name || ' ' || ag.last_name)        AS assigned_name,
             count(gr.id)                                  AS asked,
             count(gr.id) FILTER (WHERE gr.answer='yes')   AS yes_count,
             count(gr.id) FILTER (WHERE gr.answer='no')    AS no_count
        FROM bookings b
        LEFT JOIN guide_requests gr ON gr.booking_id = b.id
-      GROUP BY b.id
+       LEFT JOIN guides ag ON ag.id = b.assigned_guide_id
+      GROUP BY b.id, ag.first_name, ag.last_name
       ORDER BY b.created_at DESC
       LIMIT 200`,
   );
@@ -692,11 +695,14 @@ app.get("/admin", requireAuth, async (req, res) => {
           <div class="muted">of ${money(b.total_cents, b.currency)}</div></td>
       <td>${statusTag(b.status)}</td>
       <td>${
-        Number(b.asked) === 0
-          ? '<span class="muted">—</span>'
-          : `<span class="tag tag-yes">${b.yes_count} yes</span>
-             <span class="tag tag-no" style="margin-left:5px">${b.no_count} no</span>
-             <div class="muted">${b.asked} asked</div>`
+        b.assigned_name
+          ? `<div class="assigned-flag">★ ${esc(b.assigned_name)}</div>
+             <div class="muted">${b.yes_count} yes · ${b.no_count} no</div>`
+          : Number(b.asked) === 0
+            ? '<span class="muted">—</span>'
+            : `<span class="tag tag-yes">${b.yes_count} yes</span>
+               <span class="tag tag-no" style="margin-left:5px">${b.no_count} no</span>
+               <div class="muted">${b.asked} asked</div>`
       }</td>
     </tr>`,
     )
@@ -887,11 +893,38 @@ app.get("/admin/bookings/:id", requireAuth, async (req, res) => {
   const paid = PAID.has(b.status);
 
   const guideRows = requests.rows
-    .map(
-      (r) => `<tr>
-        <td><strong>${esc(r.first_name)} ${esc(r.last_name)}</strong>
+    .map((r) => {
+      const isAssigned = b.assigned_guide_id === r.guide_id;
+      const canAssign = r.answer === "yes" && !b.assigned_guide_id && b.status !== "cancelled";
+      return `<tr${isAssigned ? ' style="background:rgba(18,135,79,.06)"' : ""}>
+        <td>${isAssigned ? '<div class="assigned-flag">★ Assigned guide</div>' : ""}
+            <strong>${esc(r.first_name)} ${esc(r.last_name)}</strong>
             <div class="muted">${esc(r.email)} · ${esc(r.phone)}</div></td>
         <td>${answerTag(r.answer)}${r.answered_at ? `<div class="muted">${dateShort(r.answered_at)}</div>` : ""}</td>
+        <td style="white-space:nowrap">
+          ${
+            canAssign
+              ? `<form method="post" action="/admin/bookings/${b.id}/assign" style="display:inline">
+                   <input type="hidden" name="guide_id" value="${r.guide_id}">
+                   <button class="btn btn-gold btn-sm">Assign this guide</button>
+                 </form>`
+              : ""
+          }
+          ${
+            r.answer === "yes"
+              ? `<form method="post" action="/admin/bookings/${b.id}/decline" style="display:inline"
+                       onsubmit="return confirm('Set ${esc(r.first_name)} ${esc(r.last_name)} to declined?${isAssigned ? " The booking will be free for another guide." : ""}')">
+                   <input type="hidden" name="guide_id" value="${r.guide_id}">
+                   <button class="btn btn-danger btn-sm">${isAssigned ? "Guide dropped out" : "Set to declined"}</button>
+                 </form>`
+              : ""
+          }
+          ${
+            r.answer === "yes" && b.assigned_guide_id && !isAssigned
+              ? '<span class="muted">another guide is assigned</span>'
+              : ""
+          }
+        </td>
         <td>${
           r.mail_status === "sent"
             ? '<span class="muted">sent</span>'
@@ -900,15 +933,32 @@ app.get("/admin/bookings/:id", requireAuth, async (req, res) => {
               : `<span class="tag tag-pending">${esc(r.mail_status)}</span>`
         }</td>
         <td class="muted"><code>${SITE_URL}/g/${esc(r.token)}/yes</code><br><code>${SITE_URL}/g/${esc(r.token)}/no</code></td>
-      </tr>`,
-    )
+      </tr>`;
+    })
     .join("");
+
+  const assigned = requests.rows.find((r) => r.guide_id === b.assigned_guide_id);
 
   const body = `
     <div class="page-head">
       <div><div class="eyebrow">Booking ${esc(b.ref)}</div><h1>${esc(b.tour_label)}</h1></div>
       <a class="btn btn-ghost btn-sm" href="/admin">← All bookings</a>
     </div>
+    ${
+      assigned
+        ? `<div class="assigned-banner">
+             <span class="assigned-star">★</span>
+             <div>
+               <div class="assigned-title">Guide assigned — ${esc(assigned.first_name)} ${esc(assigned.last_name)}</div>
+               <div class="assigned-sub">${esc(assigned.email)} · ${esc(assigned.phone)}${b.assigned_at ? ` · assigned ${dateShort(b.assigned_at)}` : ""}${b.assignment_mail && b.assignment_mail !== "sent" ? ` · notification ${esc(b.assignment_mail)}` : " · notified by email"}</div>
+             </div>
+           </div>`
+        : ""
+    }
+    ${req.query.ok === "assigned" ? '<div class="note">Guide assigned and notified.</div>' : ""}
+    ${req.query.ok === "declined" ? '<div class="note">Answer set to declined — the booking is free for another guide.</div>' : ""}
+    ${req.query.e === "assign" ? '<div class="note note-bad">Could not assign: the guide has not said SI, or a guide is already assigned.</div>' : ""}
+    ${req.query.e === "assignmail" ? '<div class="note note-bad">Guide assigned, but the notification email failed — check the service logs.</div>' : ""}
     ${req.query.ok === "link" ? '<div class="note">Payment link emailed to the customer.</div>' : ""}
     ${req.query.ok === "notes" ? '<div class="note">Notes saved.</div>' : ""}
     ${req.query.ok === "balance" ? '<div class="note">Balance payment link emailed to the customer.</div>' : ""}
@@ -996,7 +1046,7 @@ app.get("/admin/bookings/:id", requireAuth, async (req, res) => {
     ${!paid && b.status !== "cancelled" ? '<div class="note">Guides are asked for availability only once the 10% deposit has been paid.</div>' : ""}
     ${
       requests.rows.length
-        ? `<table><thead><tr><th>Guide</th><th>Answer</th><th>Email</th><th>Links</th></tr></thead><tbody>${guideRows}</tbody></table>`
+        ? `<table><thead><tr><th>Guide</th><th>Answer</th><th>Assignment</th><th>Email</th><th>Links</th></tr></thead><tbody>${guideRows}</tbody></table>`
         : `<div class="empty">${
             b.status === "deposit_paid"
               ? "No guides were on file when the deposit landed. Add guides, then use “Re-send requests”."
@@ -1115,6 +1165,84 @@ app.post("/admin/bookings/:id/balance-link", requireAuth, async (req, res) => {
     console.error("balance link failed:", err.message);
     res.redirect(`/admin/bookings/${id}?e=link`);
   }
+});
+
+/** Assign the excursion to one guide and tell them. One guide at a time. */
+app.post("/admin/bookings/:id/assign", requireAuth, async (req, res) => {
+  const id = Number(req.params.id);
+  const guideId = Number(req.body?.guide_id);
+
+  const { rows } = await q(
+    `SELECT b.*, g.id AS gid, g.first_name, g.last_name, g.email, g.phone
+       FROM bookings b
+       JOIN guide_requests gr ON gr.booking_id = b.id AND gr.guide_id = $2
+       JOIN guides g ON g.id = gr.guide_id
+      WHERE b.id = $1 AND gr.answer = 'yes' AND b.assigned_guide_id IS NULL`,
+    [id, guideId],
+  );
+  if (!rows.length) return res.redirect(`/admin/bookings/${id}?e=assign`);
+  const booking = rows[0];
+  const guide = {
+    first_name: booking.first_name,
+    last_name: booking.last_name,
+    email: booking.email,
+    phone: booking.phone,
+  };
+
+  await q(
+    `UPDATE bookings SET assigned_guide_id=$2, assigned_at=now() WHERE id=$1`,
+    [id, guideId],
+  );
+
+  if (!mailConfigured) {
+    await q(`UPDATE bookings SET assignment_mail='not_sent' WHERE id=$1`, [id]);
+    return res.redirect(`/admin/bookings/${id}?ok=assigned`);
+  }
+
+  const tour = TOURS[booking.tour_key] || {};
+  try {
+    await sendMail({
+      to: guide.email,
+      ...guideAssignedMail({
+        guide,
+        booking,
+        packageName: tour.package,
+        itinerary: tour.itinerary || [],
+        dateLabel: dateShort(booking.excursion_date),
+      }),
+    });
+    await q(`UPDATE bookings SET assignment_mail='sent' WHERE id=$1`, [id]);
+    res.redirect(`/admin/bookings/${id}?ok=assigned`);
+  } catch (err) {
+    console.error("assignment mail failed:", err.message);
+    await q(`UPDATE bookings SET assignment_mail=$2 WHERE id=$1`, [
+      id,
+      `failed: ${err.message}`.slice(0, 400),
+    ]);
+    res.redirect(`/admin/bookings/${id}?e=assignmail`);
+  }
+});
+
+/**
+ * A guide steps back: their answer returns to NO and, if they held the job,
+ * the booking frees up so another guide can be assigned.
+ */
+app.post("/admin/bookings/:id/decline", requireAuth, async (req, res) => {
+  const id = Number(req.params.id);
+  const guideId = Number(req.body?.guide_id);
+
+  await q(
+    `UPDATE guide_requests SET answer='no', answered_at=now()
+      WHERE booking_id=$1 AND guide_id=$2`,
+    [id, guideId],
+  );
+  await q(
+    `UPDATE bookings
+        SET assigned_guide_id=NULL, assigned_at=NULL, assignment_mail=NULL
+      WHERE id=$1 AND assigned_guide_id=$2`,
+    [id, guideId],
+  );
+  res.redirect(`/admin/bookings/${id}?ok=declined`);
 });
 
 app.post("/admin/bookings/:id/cancel", requireAuth, async (req, res) => {
