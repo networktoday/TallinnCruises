@@ -266,9 +266,11 @@
       list-style: none;
     }
     .nav-links a {
-      font-family: var(--serif);
-      font-size: 16px;
-      font-weight: 500;
+      font-family: var(--sans);
+      font-size: 13.5px;
+      font-weight: 600;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
       color: var(--ink);
       position: relative;
       padding: 4px 0;
@@ -483,92 +485,7 @@
       color: var(--muted);
     }
 
-    /* ═══════════════════════════════════════
-       RESERVATION BAR  (Quick Booking)
-    ═══════════════════════════════════════ */
-    #reserve {
-      position: relative;
-      z-index: 5;
-      margin-top: clamp(-70px, -6vw, -46px);
-      padding-bottom: clamp(50px, 5vw, 74px);
-    }
-    .reserve-card {
-      background: var(--white);
-      border: 1px solid var(--line);
-      box-shadow: var(--shadow-lg);
-      padding: clamp(22px, 2.4vw, 30px);
-      display: grid;
-      grid-template-columns: auto 1fr 1fr 1.2fr auto;
-      gap: clamp(16px, 1.8vw, 26px);
-      align-items: end;
-    }
-    .reserve-title {
-      font-family: var(--serif);
-      font-size: 19px;
-      font-weight: 700;
-      color: var(--ink);
-      line-height: 1.2;
-      padding-bottom: 8px;
-      max-width: 8ch;
-    }
-    .reserve-title span {
-      display: block;
-      font-family: var(--sans);
-      font-size: 10px;
-      font-weight: 600;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: var(--gold-deep);
-      margin-top: 6px;
-    }
-
-    .field label {
-      display: block;
-      font-size: 10.5px;
-      font-weight: 600;
-      letter-spacing: 0.13em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 8px;
-    }
-    .field input,
-    .field select,
-    .field .picker {
-      width: 100%;
-      background: transparent;
-      border: none;
-      border-bottom: 1px solid var(--line);
-      border-radius: 0;
-      padding: 10px 0;
-      font-size: 15.5px;
-      color: var(--ink);
-      transition: border-color .25s ease;
-      appearance: none;
-      cursor: pointer;
-    }
-    .field input:focus,
-    .field select:focus,
-    .field .picker:focus { outline: none; border-color: var(--gold-line); }
-    .field select { background-image: none; }
-    .field .picker {
-      text-align: left;
-      color: var(--muted);
-      font-family: var(--sans);
-    }
-    .field .picker.has-value { color: var(--ink); }
-
-    .reserve-note {
-      grid-column: 1 / -1;
-      font-size: 11.5px;
-      letter-spacing: 0.06em;
-      color: var(--muted);
-      border-top: 1px solid var(--line-soft);
-      padding-top: 14px;
-      margin-top: 4px;
-    }
-
-    /* ═══════════════════════════════════════
-       PILLARS  (dark band, hairline columns)
+  (dark band, hairline columns)
     ═══════════════════════════════════════ */
     .pillars {
       display: grid;
@@ -1272,122 +1189,7 @@
     #scroll-top.visible { opacity: 1; pointer-events: auto; transform: none; }
     #scroll-top:hover { background: var(--gold); color: var(--ink); }
 
-    /* ═══════════════════════════════════════
-       TOUR PICKER MODAL
-    ═══════════════════════════════════════ */
-    .tour-modal-overlay {
-      position: fixed;
-      inset: 0;
-      z-index: 1000;
-      background: rgba(12,32,50,0.72);
-      backdrop-filter: blur(4px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity .3s ease;
-    }
-    .tour-modal-overlay.open { opacity: 1; pointer-events: auto; }
-    .tour-modal {
-      background: var(--paper);
-      border: 1px solid var(--line);
-      width: min(980px, 100%);
-      max-height: 88vh;
-      overflow-y: auto;
-      padding: clamp(24px, 3vw, 44px);
-      box-shadow: var(--shadow-lg);
-    }
-    .tour-modal-close {
-      position: absolute;
-      top: 16px; right: 16px;
-      width: 38px; height: 38px;
-      background: none;
-      border: 1px solid var(--line);
-      cursor: pointer;
-      font-size: 14px;
-      color: var(--ink);
-      transition: background .2s ease;
-    }
-    .tour-modal-close:hover { background: rgba(12,32,50,0.06); }
-    .tour-modal-header {
-      margin-bottom: 30px;
-      padding-bottom: 20px;
-      border-bottom: 1px solid var(--line);
-    }
-    .tour-modal-header p { font-size: 14.5px; color: var(--muted); margin-top: 8px; }
-    .tour-modal-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 20px;
-    }
-    .tour-modal-card {
-      background: var(--card);
-      border: 1px solid var(--line);
-      cursor: pointer;
-      transition: border-color .25s ease, transform .25s ease;
-      overflow: hidden;
-    }
-    .tour-modal-card:hover { border-color: var(--gold-line); transform: translateY(-2px); }
-    .tour-modal-card-img {
-      height: 132px;
-      background-size: cover;
-      background-position: center;
-      filter: grayscale(0.55);
-    }
-    .tour-modal-card:hover .tour-modal-card-img { filter: none; }
-    .tour-modal-card-body { padding: 20px; }
-    .tour-modal-card-title {
-      font-family: var(--serif);
-      font-size: 18px;
-      font-weight: 600;
-      color: var(--ink);
-      line-height: 1.24;
-      margin-bottom: 10px;
-    }
-    .tour-modal-card-desc { font-size: 14px; color: var(--muted); margin-bottom: 18px; }
-    .tour-modal-card-footer {
-      display: flex;
-      align-items: baseline;
-      justify-content: space-between;
-      gap: 14px;
-      padding-top: 14px;
-      border-top: 1px solid var(--line-soft);
-    }
-    .tour-modal-card-price {
-      font-family: var(--serif);
-      font-size: 22px;
-      font-weight: 700;
-      color: var(--ink);
-    }
-    .tour-modal-card-price span {
-      font-family: var(--sans);
-      font-size: 10.5px;
-      font-weight: 500;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--muted);
-    }
-    .tour-modal-card-duration {
-      font-size: 10.5px;
-      font-weight: 600;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: var(--gold-deep);
-    }
-    .tour-modal-kind {
-      display: inline-block;
-      margin-top: 14px;
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      color: var(--gold-deep);
-    }
 
-    /* ═══════════════════════════════════════
-       REVEAL
     ═══════════════════════════════════════ */
     .reveal {
       opacity: 0;
@@ -1414,9 +1216,6 @@
     @media (max-width: 1080px) {
       .hero-inner { grid-template-columns: 1fr; gap: 52px; }
       .hero-media { max-width: 560px; }
-      .reserve-card { grid-template-columns: 1fr 1fr; }
-      .reserve-title { grid-column: 1 / -1; max-width: none; }
-      .reserve-card > .btn { grid-column: 1 / -1; }
       .pillars { grid-template-columns: 1fr 1fr; gap: 30px 0; }
       .pillar:nth-child(3) { border-left: none; padding-left: 0; }
       .why-grid, .booking-grid, .contact-grid { grid-template-columns: 1fr; }
@@ -1431,7 +1230,6 @@
       .nav-cta { display: none; }
       .hamburger { display: flex; }
       .tours-grid { grid-template-columns: 1fr; }
-      .tour-modal-grid { grid-template-columns: 1fr; }
       .addons-grid { grid-template-columns: 1fr; }
       .booking-form { grid-template-columns: 1fr; }
       .s-head-flex { display: block; }
@@ -1440,7 +1238,6 @@
 
     @media (max-width: 560px) {
       body { font-size: 16px; }
-      .reserve-card { grid-template-columns: 1fr; }
       .pillars, .steps, .benefits { grid-template-columns: 1fr; }
       .pillar { border-left: none; padding-left: 0; padding-right: 0; }
       .pillar:not(:first-child) { border-top: 1px solid var(--ink-line); padding-top: 26px; }
@@ -1562,42 +1359,7 @@
     </div>
   </section>
 
-  <!-- ═══ QUICK BOOKING BAR ═══ -->
-  <section id="reserve">
-    <div class="container">
-      <div class="reserve-card">
-        <div class="reserve-title">
-          Quick Booking
-          <span>Takes 3 min</span>
-        </div>
-        <div class="field">
-          <label for="quick-date">Arrival Date</label>
-          <input type="date" id="quick-date">
-        </div>
-        <div class="field">
-          <label for="quick-guests">Number of Guests</label>
-          <select id="quick-guests">
-            <option value="">Select guests...</option>
-            <option value="1–2 guests">1–2 guests</option>
-            <option value="3–4 guests">3–4 guests</option>
-            <option value="5–6 guests">5–6 guests</option>
-            <option value="7–10 guests">7+ guests</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="tour-picker-btn">Tour Type</label>
-          <input type="hidden" id="quick-tour" value="">
-          <button type="button" class="picker tour-picker-trigger" id="tour-picker-btn">
-            Choose a tour...
-          </button>
-        </div>
-        <a href="#booking" id="quick-book-btn" class="btn btn-gold">Book Now →</a>
-        <p class="reserve-note">Free cancellation · No credit card required</p>
-      </div>
-    </div>
-  </section>
 
-  <!-- ═══ PILLARS ═══ -->
   <section id="trust-strip" class="section band-dark on-dark">
     <div class="container">
       <div class="s-head reveal">
@@ -2313,74 +2075,7 @@
   <!-- Scroll to top -->
   <button id="scroll-top" aria-label="Scroll to top">↑</button>
 
-  <!-- Tour Picker Modal -->
-  <div class="tour-modal-overlay" id="tour-modal">
-    <div class="tour-modal" style="position:relative;">
-      <button class="tour-modal-close" id="tour-modal-close" aria-label="Close">✕</button>
-      <div class="tour-modal-header">
-        <h3>Choose Your Tour</h3>
-        <p>Select a tour to see what's included</p>
-      </div>
-      <div class="tour-modal-grid">
 
-        <div class="tour-modal-card" data-tour-value="Classic Essential" data-tour-label="Old Town Walking Tour — Classic Essential (3h)">
-          <div class="tour-modal-card-img" style="background-image: url('/tour-medieval.jpg');"></div>
-          <div class="tour-modal-card-body">
-            <div class="tour-modal-card-title">Tallinn Old Town Private Walking Tour</div>
-            <p class="tour-modal-card-desc">The essential Tallinn on foot — cobblestones, medieval walls, and centuries of history with your own expert local guide.</p>
-            <div class="tour-modal-card-footer">
-              <div class="tour-modal-card-price">$89 <span>per person</span></div>
-              <div class="tour-modal-card-duration">3 hours</div>
-            </div>
-            <span class="tour-modal-kind">Classic Essential</span>
-          </div>
-        </div>
-
-        <div class="tour-modal-card" data-tour-value="Signature Tour" data-tour-label="Best of Tallinn Shore Excursion — Signature Tour (6h)">
-          <div class="tour-modal-card-img" style="background-image: url('/tour-explorer.jpg');"></div>
-          <div class="tour-modal-card-body">
-            <div class="tour-modal-card-title">Best of Tallinn Private Shore Excursion</div>
-            <p class="tour-modal-card-desc">Old Town, Kadriorg Palace, Baltic coast, and a local restaurant lunch — the most popular full-day Tallinn experience.</p>
-            <div class="tour-modal-card-footer">
-              <div class="tour-modal-card-price">$149 <span>per person</span></div>
-              <div class="tour-modal-card-duration">6 hours</div>
-            </div>
-            <span class="tour-modal-kind">Signature Tour</span>
-          </div>
-        </div>
-
-        <div class="tour-modal-card" data-tour-value="Most Complete" data-tour-label="Old Town, Kadriorg &amp; Pirita — Most Complete (8h)">
-          <div class="tour-modal-card-img" style="background-image: url('/tour-custom.jpg');"></div>
-          <div class="tour-modal-card-body">
-            <div class="tour-modal-card-title">Tallinn Old Town, Kadriorg &amp; Pirita Tour</div>
-            <p class="tour-modal-card-desc">Every highlight, no rushing. A full day covering medieval Old Town, Baroque gardens, and the Baltic coastline.</p>
-            <div class="tour-modal-card-footer">
-              <div class="tour-modal-card-price">$179 <span>per person</span></div>
-              <div class="tour-modal-card-duration">8 hours</div>
-            </div>
-            <span class="tour-modal-kind">Most Complete</span>
-          </div>
-        </div>
-
-        <div class="tour-modal-card" data-tour-value="Most Original" data-tour-label="Hidden Stories &amp; Local Life — Most Original (4h)">
-          <div class="tour-modal-card-img" style="background-image: url('/tour-stories.jpg');"></div>
-          <div class="tour-modal-card-body">
-            <div class="tour-modal-card-title">Tallinn Hidden Stories &amp; Local Life Tour</div>
-            <p class="tour-modal-card-desc">Skip the postcard version. Explore creative neighborhoods, street art, local cafés, and stories no bus tour tells.</p>
-            <div class="tour-modal-card-footer">
-              <div class="tour-modal-card-price">$109 <span>per person</span></div>
-              <div class="tour-modal-card-duration">4 hours</div>
-            </div>
-            <span class="tour-modal-kind">Most Original</span>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </div>
-
-  <!-- ═══════════════════════════════════════
-       JAVASCRIPT
   ═══════════════════════════════════════ -->
   <script>
     // ── Navbar scroll effect ──
@@ -2412,68 +2107,7 @@
 
     revealEls.forEach(el => observer.observe(el));
 
-    // ── Tour Picker Modal ──
-    const tourModal = document.getElementById('tour-modal');
-    const tourPickerBtn = document.getElementById('tour-picker-btn');
-    const tourModalClose = document.getElementById('tour-modal-close');
-    const quickTourInput = document.getElementById('quick-tour');
 
-    tourPickerBtn.addEventListener('click', () => tourModal.classList.add('open'));
-    tourModalClose.addEventListener('click', () => tourModal.classList.remove('open'));
-    tourModal.addEventListener('click', (e) => {
-      if (e.target === tourModal) tourModal.classList.remove('open');
-    });
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') tourModal.classList.remove('open');
-    });
-
-    document.querySelectorAll('.tour-modal-card').forEach(card => {
-      card.addEventListener('click', () => {
-        const val = card.dataset.tourValue;
-        const label = card.dataset.tourLabel;
-        quickTourInput.value = val;
-        tourPickerBtn.textContent = label;
-        tourPickerBtn.classList.add('has-value');
-        tourModal.classList.remove('open');
-      });
-    });
-
-    // ── Quick Booking → Booking form prefill ──
-    const quickBookBtn = document.getElementById('quick-book-btn');
-    quickBookBtn.addEventListener('click', function () {
-      const qDate = document.getElementById('quick-date').value;
-      const qGuests = document.getElementById('quick-guests').value;
-      const qTour = quickTourInput.value;
-
-      const bookingForm = document.getElementById('booking-form');
-
-      if (qDate) {
-        bookingForm.querySelector('[name="arrival_date"]').value = qDate;
-      }
-
-      if (qGuests) {
-        const guestSelect = bookingForm.querySelector('[name="guests"]');
-        for (const opt of guestSelect.options) {
-          if (opt.textContent === qGuests) {
-            guestSelect.value = opt.value;
-            break;
-          }
-        }
-      }
-
-      if (qTour) {
-        const tourSelect = bookingForm.querySelector('[name="tour_type"]');
-        for (const opt of tourSelect.options) {
-          if (opt.textContent.includes(qTour)) {
-            tourSelect.value = opt.value;
-            break;
-          }
-        }
-        tourSelect.dispatchEvent(new Event('change'));
-      }
-    });
-
-    // ── Add-on cards ──
     const addonCards = document.querySelectorAll('.addon-card');
 
     addonCards.forEach(card => {
